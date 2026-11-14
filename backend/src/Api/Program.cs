@@ -9,6 +9,12 @@ builder.AddApi();
 var app = builder.Build();
 await app.UseApiAsync();
 
+if (args.Contains(DevSeed.Command))
+{
+    await DevSeed.RunAsync(app);
+    return;
+}
+
 await app.RunAsync();
 
 /// <summary>Entry point marker, used by WebApplicationFactory in integration tests.</summary>
