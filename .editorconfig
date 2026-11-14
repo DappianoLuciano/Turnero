@@ -42,6 +42,7 @@ dotnet_naming_style.underscore_camel.required_prefix = _
 
 # Analyzer tuning
 dotnet_diagnostic.CA1848.severity = none   # LoggerMessage delegates: not required at this stage
+dotnet_diagnostic.CA1873.severity = none   # same family as CA1848
 dotnet_diagnostic.CA2007.severity = none   # ConfigureAwait: not needed in ASP.NET Core
 dotnet_diagnostic.CA1062.severity = none   # nullable reference types cover this
 dotnet_diagnostic.CA1515.severity = none   # public types are fine in an app assembly
