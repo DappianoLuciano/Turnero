@@ -120,7 +120,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Response"
+                  "$ref": "#/components/schemas/CurrentBusinessResponse"
                 }
               }
             }
@@ -172,7 +172,39 @@
   "components": {
     "schemas": {
       "BusinessRole": {
-        "type": "integer"
+        "enum": [
+          "Owner",
+          "Staff",
+          "Reception"
+        ]
+      },
+      "CurrentBusinessResponse": {
+        "required": [
+          "id",
+          "name",
+          "slug",
+          "timeZone",
+          "currency"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "timeZone": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          }
+        }
       },
       "HttpValidationProblemDetails": {
         "type": "object",
@@ -271,34 +303,6 @@
               "null",
               "string"
             ]
-          }
-        }
-      },
-      "Response": {
-        "required": [
-          "id",
-          "name",
-          "slug",
-          "timeZone",
-          "currency"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "name": {
-            "type": "string"
-          },
-          "slug": {
-            "type": "string"
-          },
-          "timeZone": {
-            "type": "string"
-          },
-          "currency": {
-            "type": "string"
           }
         }
       },

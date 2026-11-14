@@ -22,6 +22,8 @@ internal static class ApiHostingExtensions
         builder.Services.AddSingleton(product);
 
         builder.Services.AddSingleton(TimeProvider.System);
+        builder.Services.ConfigureHttpJsonOptions(o =>
+            o.SerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter()));
         builder.Services.AddProblemDetailsErrors();
         builder.Services.AddRequestValidation();
         builder.Services.AddApiOpenApi(product);
