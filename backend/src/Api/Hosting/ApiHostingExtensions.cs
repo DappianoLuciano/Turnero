@@ -1,7 +1,9 @@
-using System.Reflection;
+using Api.Modules;
+using Api.Shared.Auth;
 using Api.Shared.Errors;
 using Api.Shared.Hosting;
 using Api.Shared.Persistence;
+using Api.Shared.Tenancy;
 using Api.Shared.Validation;
 using Scalar.AspNetCore;
 
@@ -10,10 +12,6 @@ namespace Api.Hosting;
 /// <summary>Composition root: wires shared building blocks and modules.</summary>
 internal static class ApiHostingExtensions
 {
-    /// <summary>True when the app is being started by the build-time OpenAPI generator.</summary>
-    public static bool IsOpenApiGeneration =>
-        Assembly.GetEntryAssembly()?.GetName().Name == "GetDocument.Insider";
-
     public static WebApplicationBuilder AddApi(this WebApplicationBuilder builder)
     {
         var product = new ConfigurationBuilder()
@@ -28,14 +26,16 @@ internal static class ApiHostingExtensions
         builder.Services.AddRequestValidation();
         builder.Services.AddApiOpenApi(product);
         builder.Services.AddPersistence();
+        builder.Services.AddAppAuthentication();
         builder.Services.AddHealthChecks().AddDbContextCheck<AppDbContext>("database");
+        builder.Services.AddModules();
 
         return builder;
     }
 
     public static async Task<WebApplication> UseApiAsync(this WebApplication app)
     {
-        if (!IsOpenApiGeneration && app.Configuration.GetValue<bool>("Database:ApplyMigrationsOnStartup"))
+        if (!BuildTooling.IsOpenApiGeneration &&app.Configuration.GetValue<bool>("Database:ApplyMigrationsOnStartup"))
         {
             var migrations = app.Configuration.GetConnectionString(PersistenceServiceCollectionExtensions.MigrationsConnectionName)
                 ?? throw new InvalidOperationException("Missing connection string 'Migrations'.");
@@ -45,6 +45,10 @@ internal static class ApiHostingExtensions
         app.UseExceptionHandler();
         app.UseStatusCodePages();
 
+        app.UseAuthentication();
+        app.UseMiddleware<TenantResolutionMiddleware>();
+        app.UseAuthorization();
+
         if (app.Environment.IsDevelopment())
         {
             app.MapOpenApi("/openapi/{documentName}.json");
@@ -53,8 +57,13 @@ internal static class ApiHostingExtensions
 
         app.MapApiHealth();
 
-        app.MapGroup("/api")
-            .AddEndpointFilterFactory(ValidationEndpointFilter.Create);
+        var api = app.MapGroup("/api").AddEndpointFilterFactory(ValidationEndpointFilter.Create);
+        var groups = new ApiRouteGroups(
+            Anonymous: api.MapGroup(string.Empty).AllowAnonymous(),
+            Tenant: api.MapGroup(string.Empty)
+                .RequireAuthorization(AuthPolicies.Member)
+                .AddEndpointFilter<TenantTransactionFilter>());
+        app.MapModules(groups);
 
         return app;
     }
