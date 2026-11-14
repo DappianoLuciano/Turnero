@@ -39,11 +39,12 @@ public sealed class PostgresFixture : IAsyncLifetime
         var admin = new NpgsqlConnectionStringBuilder(_container.GetConnectionString());
         SuperuserConnectionString = admin.ConnectionString;
 
-        await ExecuteAsync(SuperuserConnectionString, $"""
-            CREATE ROLE {DatabaseRoles.Migrator} LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS PASSWORD '{MigratorPassword}';
-            CREATE ROLE {DatabaseRoles.Runtime} LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS PASSWORD '{RuntimePassword}';
-            CREATE DATABASE {Database} OWNER {DatabaseRoles.Migrator};
-            """);
+        // One statement per command: CREATE DATABASE cannot run inside a multi-statement batch.
+        await ExecuteAsync(SuperuserConnectionString,
+            $"CREATE ROLE {DatabaseRoles.Migrator} LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS PASSWORD '{MigratorPassword}'");
+        await ExecuteAsync(SuperuserConnectionString,
+            $"CREATE ROLE {DatabaseRoles.Runtime} LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS PASSWORD '{RuntimePassword}'");
+        await ExecuteAsync(SuperuserConnectionString, $"CREATE DATABASE {Database} OWNER {DatabaseRoles.Migrator}");
 
         var appDbAdmin = new NpgsqlConnectionStringBuilder(SuperuserConnectionString) { Database = Database };
         await ExecuteAsync(appDbAdmin.ConnectionString, $"""
