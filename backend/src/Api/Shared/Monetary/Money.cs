@@ -1,4 +1,4 @@
-namespace Api.Shared.Money;
+namespace Api.Shared.Monetary;
 
 /// <summary>
 /// Monetary amount. Stored as <c>numeric(12,2)</c> + <c>char(3)</c> currency (ISO 4217).

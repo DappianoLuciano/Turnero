@@ -7,7 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddApi();
 
 var app = builder.Build();
-app.UseApi();
+await app.UseApiAsync();
 
 await app.RunAsync();
 
