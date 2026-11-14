@@ -66,9 +66,21 @@ public sealed class PostgresFixture : IAsyncLifetime
         }.ConnectionString;
 
         await DatabaseMigrator.MigrateAsync(MigratorConnectionString);
+        Api = new ApiFactory(this);
     }
 
-    public async ValueTask DisposeAsync() => await _container.DisposeAsync();
+    /// <summary>The API under test (connects as the runtime role).</summary>
+    public ApiFactory Api { get; private set; } = null!;
+
+    public async ValueTask DisposeAsync()
+    {
+        if (Api is not null)
+        {
+            await Api.DisposeAsync();
+        }
+
+        await _container.DisposeAsync();
+    }
 
     private static async Task ExecuteAsync(string connectionString, string sql)
     {
