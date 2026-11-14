@@ -37,7 +37,7 @@ internal static class ApiHostingExtensions
 
     public static async Task<WebApplication> UseApiAsync(this WebApplication app)
     {
-        if (!BuildTooling.IsOpenApiGeneration &&app.Configuration.GetValue<bool>("Database:ApplyMigrationsOnStartup"))
+        if (!BuildTooling.IsOpenApiGeneration && app.Configuration.GetValue<bool>("Database:ApplyMigrationsOnStartup"))
         {
             var migrations = app.Configuration.GetConnectionString(PersistenceServiceCollectionExtensions.MigrationsConnectionName)
                 ?? throw new InvalidOperationException("Missing connection string 'Migrations'.");

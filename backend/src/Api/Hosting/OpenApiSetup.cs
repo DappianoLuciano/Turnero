@@ -1,4 +1,4 @@
-﻿using Api.Shared.Hosting;
+using Api.Shared.Hosting;
 using Microsoft.OpenApi;
 
 namespace Api.Hosting;
