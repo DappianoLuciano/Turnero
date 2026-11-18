@@ -19,7 +19,7 @@ pública de reservas. Somos dos devs y no queremos mantener dos apps.
   genera en cada build) y `openapi-fetch` lo consume. El wrapper agrega el token y hace un refresh single-flight ante un 401.
 - **UI**: Tailwind CSS 4 + shadcn/ui (componentes copiados en `src/shared/ui`). Mobile first.
 - **Textos**: todos en `src/shared/i18n/es-AR.ts`. ESLint prohíbe texto literal en JSX.
-- **Branding**: `/product.json` es la única fuente del nombre del producto (`[NOMBRE]` por ahora).
+- **Branding**: `/product.json` es la única fuente del nombre del producto (hoy `Turnero`).
 
 ## Consecuencias
 

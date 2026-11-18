@@ -19,10 +19,10 @@ Registrar el módulo en [ModuleRegistry.cs](ModuleRegistry.cs). Las reglas las c
 | `Businesses`   | ✅ creado    | Negocio (tenant): nombre, slug, zona horaria, moneda |
 | `Users`        | ✅ creado    | Usuarios, membresías y roles por negocio, autenticación |
 | `Services`     | ✅ creado    | Catálogo de servicios: duración, precio (`Money`) |
-| `Staff`        | pendiente   | Profesionales y qué servicios realizan |
-| `Schedules`    | pendiente   | Horarios de atención y de cada profesional, excepciones/feriados |
-| `Appointments` | pendiente   | Turnos (exclusion constraint con `btree_gist` contra superposición) |
+| `Staff`        | ✅ creado    | Profesionales y qué servicios realizan |
+| `Schedules`    | ✅ creado    | Horarios semanales por profesional (tramos), días cerrados y disponibilidad |
+| `Appointments` | ✅ creado    | Turnos (exclusion constraint con `btree_gist` contra superposición) |
 | `Booking`      | pendiente   | Web pública de reservas: disponibilidad, reserva, seña |
-| `Payments`     | pendiente   | Cobros y señas (Mercado Pago). Inmutables |
-| `CashRegister` | pendiente   | Caja: aperturas, cierres, movimientos. Inmutables |
-| `Customers`    | pendiente   | Clientes del negocio |
+| `Payments`     | ✅ creado    | Cobros de turnos, append-only con anulaciones (Mercado Pago y señas: pendiente) |
+| `CashRegister` | ✅ creado    | Caja: efectivo esperado del día (cobros en efectivo + movimientos manuales), cierre diario. Append-only |
+| `Customers`    | ✅ creado    | Clientes del negocio |

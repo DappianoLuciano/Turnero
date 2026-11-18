@@ -2,9 +2,17 @@ import { Navigate, type RouteObject } from 'react-router';
 import { BookingPlaceholderPage } from '@/features/booking/BookingPlaceholderPage';
 import { LoginPage } from '@/features/auth/LoginPage';
 import { RequireAuth } from '@/features/auth/RequireAuth';
+import { CustomersPage } from '@/features/customers/CustomersPage';
 import { navItems } from '@/features/panel/navigation';
+import { AgendaPage } from '@/features/agenda/AgendaPage';
+import { CashPage } from '@/features/cash/CashPage';
+import { SchedulesPage } from '@/features/schedules/SchedulesPage';
+import { ReportsPage } from '@/features/reports/ReportsPage';
+import { PaymentsPage } from '@/features/payments/PaymentsPage';
+import { StaffPage } from '@/features/staff/StaffPage';
 import { ServicesPage } from '@/features/services/ServicesPage';
-import { HomePage, PlaceholderPage } from '@/features/panel/pages';
+import { HomePage } from '@/features/home/HomePage';
+import { PlaceholderPage } from '@/features/panel/pages';
 import { PanelLayout } from '@/features/panel/PanelLayout';
 import { NotFoundPage } from './NotFoundPage';
 
@@ -25,8 +33,28 @@ export const routes: RouteObject[] = [
         children: [
           { index: true, element: <HomePage /> },
           { path: 'services', element: <ServicesPage /> },
+          { path: 'customers', element: <CustomersPage /> },
+          { path: 'staff', element: <StaffPage /> },
+          { path: 'agenda', element: <AgendaPage /> },
+          { path: 'payments', element: <PaymentsPage /> },
+          { path: 'cash-register', element: <CashPage /> },
+          { path: 'reports', element: <ReportsPage /> },
+          { path: 'schedules', element: <SchedulesPage /> },
           ...navItems
-            .filter((item) => item.to !== '/app' && item.to !== '/app/services')
+            .filter(
+              (item) =>
+                ![
+                  '/app',
+                  '/app/services',
+                  '/app/customers',
+                  '/app/staff',
+                  '/app/agenda',
+                  '/app/payments',
+                  '/app/cash-register',
+                  '/app/reports',
+                  '/app/schedules',
+                ].includes(item.to),
+            )
             .map((item) => ({
               path: item.to.replace('/app/', ''),
               element: <PlaceholderPage title={item.label} />,

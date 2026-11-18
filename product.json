@@ -1,6 +1,6 @@
 {
-  "name": "[NOMBRE]",
-  "shortName": "[NOMBRE]",
+  "name": "Turnero",
+  "shortName": "Turnero",
   "description": "Gestión de turnos para tu negocio",
   "themeColor": "#0f172a",
   "backgroundColor": "#ffffff"

@@ -2,6 +2,7 @@ import { LogOut, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router';
 import { logout } from '@/features/auth/auth-api';
+import { useSession } from '@/features/auth/use-session';
 import { t } from '@/shared/i18n';
 import { cn } from '@/shared/lib/utils';
 import { Button } from '@/shared/ui/button';
@@ -11,6 +12,7 @@ import { navItems } from './navigation';
 export function PanelLayout() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
+  const session = useSession();
 
   const handleLogout = async () => {
     await logout();
@@ -67,6 +69,12 @@ export function PanelLayout() {
           ))}
         </nav>
         <div className="border-t p-2">
+          {session.status === 'authenticated' && (
+            <div className="px-3 py-2">
+              <p className="truncate text-sm font-medium">{session.user.fullName}</p>
+              <p className="text-muted-foreground truncate text-xs">{session.user.email}</p>
+            </div>
+          )}
           <Button variant="ghost" className="w-full justify-start gap-3" onClick={handleLogout}>
             <LogOut className="size-4" />
             {t.auth.logout}

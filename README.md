@@ -1,4 +1,4 @@
-# [NOMBRE]
+# Turnero
 
 SaaS de gestión para locales que trabajan con turnos (barberías, peluquerías, centros de uñas, estética):
 panel del negocio y web pública de reservas, multi-negocio.

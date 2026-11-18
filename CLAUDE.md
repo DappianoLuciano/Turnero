@@ -1,7 +1,7 @@
 # CLAUDE.md
 
 SaaS multi-negocio de gestión de turnos (barberías, peluquerías, uñas, estética; después tiendas y gastronomía):
-panel del negocio (`/app`) + web pública de reservas (`/r/:slug`). El nombre del producto es `[NOMBRE]`
+panel del negocio (`/app`) + web pública de reservas (`/r/:slug`). El nombre del producto es `Turnero`
 y vive **solo** en `/product.json`.
 
 ## Stack

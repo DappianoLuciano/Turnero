@@ -6,6 +6,7 @@ using Api.Shared.Persistence;
 using Api.Shared.Tenancy;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace Api.Modules.Services.Features;
 
@@ -125,7 +126,18 @@ internal static class DeleteService
         var service = await db.Set<Service>().SingleOrDefaultAsync(s => s.Id == id, cancellationToken)
             ?? throw AppException.NotFound("service_not_found", "Service not found.");
         db.Set<Service>().Remove(service);
-        await db.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await db.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException
+        { SqlState: PostgresErrorCodes.ForeignKeyViolation })
+        {
+            // Modules that reference services (appointments) add a restrictive FK.
+            throw AppException.Conflict("service_has_history",
+                "The service has appointments and cannot be deleted. Deactivate it instead.");
+        }
+
         return TypedResults.NoContent();
     }
 }

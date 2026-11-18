@@ -41,6 +41,10 @@ public static class BusinessTimeZone
         return new DateTimeOffset(local, offset).ToUniversalTime();
     }
 
+    /// <summary>The UTC range [from, to) covering the local calendar days <paramref name="first"/>..<paramref name="last"/> (inclusive).</summary>
+    public static (DateTimeOffset From, DateTimeOffset To) LocalDaysToUtc(DateOnly first, DateOnly last, string ianaId) =>
+        (ToUtc(first.ToDateTime(TimeOnly.MinValue), ianaId), ToUtc(last.AddDays(1).ToDateTime(TimeOnly.MinValue), ianaId));
+
     /// <summary>Normalizes any DateTimeOffset to UTC (offset 0), as required by Npgsql for timestamptz.</summary>
     public static DateTimeOffset EnsureUtc(DateTimeOffset value) => value.ToUniversalTime();
 }

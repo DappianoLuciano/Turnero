@@ -1,5 +1,12 @@
+using Api.Modules.Appointments;
 using Api.Modules.Businesses;
+using Api.Modules.CashRegister;
+using Api.Modules.Customers;
+using Api.Modules.Payments;
+using Api.Modules.Reports;
+using Api.Modules.Schedules;
 using Api.Modules.Services;
+using Api.Modules.Staff;
 using Api.Modules.Users;
 using Api.Shared.Hosting;
 
@@ -13,14 +20,28 @@ internal static class ModuleRegistry
 {
     public static IServiceCollection AddModules(this IServiceCollection services) =>
         services
+            .AddAppointmentsModule()
             .AddBusinessesModule()
+            .AddCashRegisterModule()
+            .AddCustomersModule()
+            .AddPaymentsModule()
+            .AddReportsModule()
+            .AddSchedulesModule()
             .AddServicesModule()
+            .AddStaffModule()
             .AddUsersModule();
 
     public static IEndpointRouteBuilder MapModules(this IEndpointRouteBuilder app, ApiRouteGroups groups)
     {
+        AppointmentsModule.MapAppointmentsEndpoints(groups);
         BusinessesModule.MapBusinessesEndpoints(groups);
+        CashRegisterModule.MapCashRegisterEndpoints(groups);
+        CustomersModule.MapCustomersEndpoints(groups);
+        PaymentsModule.MapPaymentsEndpoints(groups);
+        ReportsModule.MapReportsEndpoints(groups);
+        SchedulesModule.MapSchedulesEndpoints(groups);
         ServicesModule.MapServicesEndpoints(groups);
+        StaffModule.MapStaffEndpoints(groups);
         UsersModule.MapUsersEndpoints(groups);
         return app;
     }
