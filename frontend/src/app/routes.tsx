@@ -3,6 +3,7 @@ import { BookingPlaceholderPage } from '@/features/booking/BookingPlaceholderPag
 import { LoginPage } from '@/features/auth/LoginPage';
 import { RequireAuth } from '@/features/auth/RequireAuth';
 import { navItems } from '@/features/panel/navigation';
+import { ServicesPage } from '@/features/services/ServicesPage';
 import { HomePage, PlaceholderPage } from '@/features/panel/pages';
 import { PanelLayout } from '@/features/panel/PanelLayout';
 import { NotFoundPage } from './NotFoundPage';
@@ -23,8 +24,9 @@ export const routes: RouteObject[] = [
         element: <PanelLayout />,
         children: [
           { index: true, element: <HomePage /> },
+          { path: 'services', element: <ServicesPage /> },
           ...navItems
-            .filter((item) => item.to !== '/app')
+            .filter((item) => item.to !== '/app' && item.to !== '/app/services')
             .map((item) => ({
               path: item.to.replace('/app/', ''),
               element: <PlaceholderPage title={item.label} />,

@@ -101,6 +101,33 @@ public sealed class SqlTenantIsolationTests(PostgresFixture db) : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Services_table_is_isolated_with_plain_sql()
+    {
+        await AsTenantAsync(_t.A.BusinessId, null, run => run.ExecuteAsync(InsertService, _t.A.BusinessId), commit: true);
+        await AsTenantAsync(_t.B.BusinessId, null, run => run.ExecuteAsync(InsertService, _t.B.BusinessId), commit: true);
+
+        await AsTenantAsync(_t.A.BusinessId, null, async run =>
+        {
+            (await run.ScalarAsync("SELECT count(*) FROM services WHERE business_id = @b", _t.B.BusinessId)).ShouldBe(0);
+            (await run.ScalarAsync("SELECT count(*) FROM services")).ShouldBe(1);
+            (await run.ExecuteAsync("UPDATE services SET name = 'hacked' WHERE business_id = @b", _t.B.BusinessId)).ShouldBe(0);
+            (await run.ExecuteAsync("DELETE FROM services WHERE business_id = @b", _t.B.BusinessId)).ShouldBe(0);
+        });
+
+        var ex = await Should.ThrowAsync<PostgresException>(() =>
+            AsTenantAsync(_t.A.BusinessId, null, run => run.ExecuteAsync(InsertService, _t.B.BusinessId)));
+        ex.SqlState.ShouldBe(PostgresErrorCodes.InsufficientPrivilege);
+
+        await AsTenantAsync(null, null, async run =>
+            (await run.ScalarAsync("SELECT count(*) FROM services")).ShouldBe(0));
+    }
+
+    private const string InsertService = """
+        INSERT INTO services (id, business_id, name, duration_minutes, price, currency, is_active, created_at, updated_at)
+        VALUES (gen_random_uuid(), @b, 'Corte', 30, 100, 'ARS', true, now(), now())
+        """;
+
+    [Fact]
     public async Task Tenant_setting_does_not_leak_after_transaction_ends()
     {
         await using var connection = new NpgsqlConnection(db.RuntimeConnectionString);

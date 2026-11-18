@@ -14,7 +14,7 @@ namespace Api.Tests.Tenancy;
 public sealed class RlsCoverageTests(PostgresFixture db)
 {
     /// <summary>Tables with business_id covered by EfTenantIsolationTests and SqlTenantIsolationTests.</summary>
-    private static readonly string[] CoveredTenantTables = ["business_memberships"];
+    private static readonly string[] CoveredTenantTables = ["business_memberships", "services"];
 
     private static readonly string[] GlobalTables = ["users", "refresh_tokens", "__ef_migrations_history"];
 

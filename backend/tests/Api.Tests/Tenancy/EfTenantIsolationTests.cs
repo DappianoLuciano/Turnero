@@ -1,6 +1,8 @@
 using Api.Modules.Businesses.Domain;
+using Api.Modules.Services.Domain;
 using Api.Modules.Users.Domain;
 using Api.Shared.Auth;
+using Api.Shared.Monetary;
 using Api.Shared.Tenancy;
 using Api.Tests.Infrastructure;
 using Microsoft.EntityFrameworkCore;
@@ -160,6 +162,57 @@ public sealed class EfTenantIsolationTests(PostgresFixture db) : IAsyncLifetime
         // Settings are transaction-local: a query without a transaction has no tenant (fail closed).
         await using var ctx = TenantDb.Create(db, _t.A.BusinessId);
         (await ctx.Set<BusinessMembership>().CountAsync(TestContext.Current.CancellationToken)).ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task Services_are_isolated_by_ef_filter_rls_and_guard()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await SeedServiceAsync(_t.A.BusinessId, "Servicio A");
+        await SeedServiceAsync(_t.B.BusinessId, "Servicio B");
+
+        await using (var ctx = TenantDb.Create(db, _t.A.BusinessId))
+        {
+            await using var tx = await ctx.Database.BeginTransactionAsync(ct);
+            (await ctx.Set<Service>().Select(s => s.Name).ToListAsync(ct)).ShouldBe(["Servicio A"]);
+            // RLS alone, with the EF filter bypassed.
+            (await ctx.Set<Service>().IgnoreQueryFilters().Where(s => s.BusinessId == _t.B.BusinessId)
+                .CountAsync(ct)).ShouldBe(0);
+            (await ctx.Set<Service>().IgnoreQueryFilters().Where(s => s.BusinessId == _t.B.BusinessId)
+                .ExecuteDeleteAsync(ct)).ShouldBe(0);
+        }
+
+        await using (var ctx = TenantDb.Create(db, _t.A.BusinessId))
+        {
+            await using var tx = await ctx.Database.BeginTransactionAsync(ct);
+            ctx.Add(Service.Create(_t.B.BusinessId, "Colado", null, 30, new Money(1m), DateTimeOffset.UtcNow));
+            await Should.ThrowAsync<CrossTenantAccessException>(() => ctx.SaveChangesAsync(ct));
+        }
+
+        await using (var ctx = TenantDb.Create(db, _t.A.BusinessId, withGuard: false))
+        {
+            await using var tx = await ctx.Database.BeginTransactionAsync(ct);
+            ctx.Add(Service.Create(_t.B.BusinessId, "Colado", null, 30, new Money(1m), DateTimeOffset.UtcNow));
+            var ex = await Should.ThrowAsync<DbUpdateException>(() => ctx.SaveChangesAsync(ct));
+            ex.InnerException.ShouldBeOfType<PostgresException>().SqlState
+                .ShouldBe(PostgresErrorCodes.InsufficientPrivilege);
+        }
+
+        await using (var ctxB = TenantDb.Create(db, _t.B.BusinessId))
+        {
+            await using var tx = await ctxB.Database.BeginTransactionAsync(ct);
+            (await ctxB.Set<Service>().Select(s => s.Name).ToListAsync(ct)).ShouldBe(["Servicio B"]);
+        }
+    }
+
+    private async Task SeedServiceAsync(Guid businessId, string name)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var ctx = TenantDb.Create(db, businessId);
+        await using var tx = await ctx.Database.BeginTransactionAsync(ct);
+        ctx.Add(Service.Create(businessId, name, null, 30, new Money(1000m), DateTimeOffset.UtcNow));
+        await ctx.SaveChangesAsync(ct);
+        await tx.CommitAsync(ct);
     }
 
     private async Task AssertTenantBUntouchedAsync()

@@ -1,4 +1,5 @@
 using Api.Modules.Businesses;
+using Api.Modules.Services;
 using Api.Modules.Users;
 using Api.Shared.Hosting;
 
@@ -13,11 +14,13 @@ internal static class ModuleRegistry
     public static IServiceCollection AddModules(this IServiceCollection services) =>
         services
             .AddBusinessesModule()
+            .AddServicesModule()
             .AddUsersModule();
 
     public static IEndpointRouteBuilder MapModules(this IEndpointRouteBuilder app, ApiRouteGroups groups)
     {
         BusinessesModule.MapBusinessesEndpoints(groups);
+        ServicesModule.MapServicesEndpoints(groups);
         UsersModule.MapUsersEndpoints(groups);
         return app;
     }

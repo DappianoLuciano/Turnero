@@ -18,7 +18,7 @@ Registrar el módulo en [ModuleRegistry.cs](ModuleRegistry.cs). Las reglas las c
 |----------------|-------------|-----------------|
 | `Businesses`   | ✅ creado    | Negocio (tenant): nombre, slug, zona horaria, moneda |
 | `Users`        | ✅ creado    | Usuarios, membresías y roles por negocio, autenticación |
-| `Services`     | pendiente   | Catálogo de servicios: duración, precio (`Money`) |
+| `Services`     | ✅ creado    | Catálogo de servicios: duración, precio (`Money`) |
 | `Staff`        | pendiente   | Profesionales y qué servicios realizan |
 | `Schedules`    | pendiente   | Horarios de atención y de cada profesional, excepciones/feriados |
 | `Appointments` | pendiente   | Turnos (exclusion constraint con `btree_gist` contra superposición) |
