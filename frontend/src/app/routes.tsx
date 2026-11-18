@@ -1,5 +1,5 @@
 import { Navigate, type RouteObject } from 'react-router';
-import { BookingPlaceholderPage } from '@/features/booking/BookingPlaceholderPage';
+import { BookingPage } from '@/features/booking/BookingPage';
 import { LoginPage } from '@/features/auth/LoginPage';
 import { RequireAuth } from '@/features/auth/RequireAuth';
 import { CustomersPage } from '@/features/customers/CustomersPage';
@@ -63,6 +63,6 @@ export const routes: RouteObject[] = [
       },
     ],
   },
-  { path: '/r/:slug/*', element: <BookingPlaceholderPage /> },
+  { path: '/r/:slug/*', element: <BookingPage /> },
   { path: '*', element: <NotFoundPage /> },
 ];

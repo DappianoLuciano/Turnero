@@ -4,6 +4,7 @@ import { useSession } from '@/features/auth/use-session';
 import { useBusiness } from '@/features/business/business-api';
 import { useCashDay } from '@/features/cash/cash-api';
 import { navItems } from '@/features/panel/navigation';
+import { BookingLinkCard } from './BookingLinkCard';
 import { useDailyPayments } from '@/features/payments/payments-api';
 import { errorMessage } from '@/shared/api/problem';
 import { formatMoney } from '@/shared/format/money';
@@ -33,6 +34,8 @@ export function HomePage() {
         </p>
       )}
       {business.data && <Today timeZone={business.data.timeZone} currency={business.data.currency} />}
+
+      {business.data && <BookingLinkCard slug={business.data.slug} />}
 
       <div className="flex flex-col gap-2">
         <h2 className="text-lg font-semibold">{t.panel.home.quickLinks}</h2>

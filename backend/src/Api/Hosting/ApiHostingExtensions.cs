@@ -29,6 +29,7 @@ internal static class ApiHostingExtensions
         builder.Services.AddApiOpenApi(product);
         builder.Services.AddPersistence();
         builder.Services.AddAppAuthentication();
+        builder.Services.AddPublicRateLimiting();
         builder.Services.AddHealthChecks().AddDbContextCheck<AppDbContext>("database");
         builder.Services.AddModules();
 
@@ -47,6 +48,7 @@ internal static class ApiHostingExtensions
         app.UseExceptionHandler();
         app.UseStatusCodePages();
 
+        app.UseRateLimiter();
         app.UseAuthentication();
         app.UseMiddleware<TenantResolutionMiddleware>();
         app.UseAuthorization();
@@ -64,7 +66,11 @@ internal static class ApiHostingExtensions
             Anonymous: api.MapGroup(string.Empty).AllowAnonymous(),
             Tenant: api.MapGroup(string.Empty)
                 .RequireAuthorization(AuthPolicies.Member)
-                .AddEndpointFilter<TenantTransactionFilter>());
+                .AddEndpointFilter<TenantTransactionFilter>(),
+            Public: api.MapGroup("/public/{slug}")
+                .AllowAnonymous()
+                .RequireRateLimiting(PublicRateLimiting.Policy)
+                .AddEndpointFilter<PublicTenantFilter>());
         app.MapModules(groups);
 
         return app;

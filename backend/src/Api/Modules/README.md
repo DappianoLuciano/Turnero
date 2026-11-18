@@ -22,7 +22,7 @@ Registrar el módulo en [ModuleRegistry.cs](ModuleRegistry.cs). Las reglas las c
 | `Staff`        | ✅ creado    | Profesionales y qué servicios realizan |
 | `Schedules`    | ✅ creado    | Horarios semanales por profesional (tramos), días cerrados y disponibilidad |
 | `Appointments` | ✅ creado    | Turnos (exclusion constraint con `btree_gist` contra superposición) |
-| `Booking`      | pendiente   | Web pública de reservas: disponibilidad, reserva, seña |
+| `Booking`      | ✅ creado    | Web pública de reservas sin cuenta: catálogo, horarios libres y reserva (seña: pendiente) |
 | `Payments`     | ✅ creado    | Cobros de turnos, append-only con anulaciones (Mercado Pago y señas: pendiente) |
 | `CashRegister` | ✅ creado    | Caja: efectivo esperado del día (cobros en efectivo + movimientos manuales), cierre diario. Append-only |
 | `Customers`    | ✅ creado    | Clientes del negocio |

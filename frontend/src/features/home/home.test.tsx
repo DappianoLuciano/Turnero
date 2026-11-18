@@ -1,6 +1,7 @@
 import { screen, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
-import { describe, expect, it } from 'vitest';
+import userEvent from '@testing-library/user-event';
+import { describe, expect, it, vi } from 'vitest';
 import { t } from '@/shared/i18n';
 import { todayIn } from '@/shared/time/business-time';
 import { renderApp } from '@/test/render';
@@ -77,6 +78,20 @@ describe('home page', () => {
     // Only scheduled ones are upcoming.
     expect(screen.queryByText(/Beto Gómez/)).not.toBeInTheDocument();
     expect(screen.queryByText(/Carla Díaz/)).not.toBeInTheDocument();
+  });
+
+  it('shows the public booking link of the business and copies it', async () => {
+    setup([]);
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+    renderApp('/app');
+
+    const card = await screen.findByRole('region', { name: t.panel.home.bookingLink.title });
+    expect(within(card).getByText(/\/r\/demo$/)).toBeInTheDocument();
+    await userEvent.click(within(card).getByRole('button', { name: t.panel.home.bookingLink.copy }));
+
+    expect(await within(card).findByText(t.panel.home.bookingLink.copied)).toBeInTheDocument();
+    expect(writeText).toHaveBeenCalledWith(expect.stringMatching(/\/r\/demo$/));
   });
 
   it('says there is nothing left today and links to the main sections', async () => {

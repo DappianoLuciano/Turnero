@@ -20,4 +20,11 @@ internal sealed class ServiceCatalog(AppDbContext db) : IServiceCatalog
             .Select(s => new ServiceSummary(s.Id, s.Name, s.DurationMinutes, s.Price, s.Currency, s.IsActive))
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<IReadOnlyList<ServiceSummary>> ListActiveAsync(CancellationToken cancellationToken = default) =>
+        await db.Set<Service>().AsNoTracking()
+            .Where(s => s.IsActive)
+            .OrderBy(s => s.Name)
+            .Select(s => new ServiceSummary(s.Id, s.Name, s.DurationMinutes, s.Price, s.Currency, s.IsActive))
+            .ToListAsync(cancellationToken);
 }

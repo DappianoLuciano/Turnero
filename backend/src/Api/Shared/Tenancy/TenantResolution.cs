@@ -21,16 +21,6 @@ public sealed class ClaimsTenantResolver : ITenantResolver
 }
 
 /// <summary>
-/// PREPARED, NOT IMPLEMENTED. Public booking site (/r/{slug} or {slug}.domain): the tenant
-/// will be resolved from the slug or subdomain. See docs/decisions/0012.
-/// </summary>
-public sealed class SlugTenantResolver : ITenantResolver
-{
-    public ValueTask<Guid?> ResolveAsync(HttpContext httpContext) =>
-        throw new NotImplementedException("Public booking tenant resolution is planned (ADR 0012).");
-}
-
-/// <summary>
 /// Sets <see cref="TenantContext"/> for authenticated requests. Runs after authentication and
 /// before any endpoint opens a database transaction.
 /// </summary>

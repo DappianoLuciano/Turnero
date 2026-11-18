@@ -18,6 +18,9 @@ public static class TenantSettings
     public const string BusinessId = "app.business_id";
     public const string UserId = "app.user_id";
 
+    /// <summary>Slug of the business being looked up by the public booking site (ADR 0012).</summary>
+    public const string PublicSlug = "app.public_slug";
+
     /// <summary>SQL expression for the current tenant. NULLIF: an unset/reset setting is '' and must match nothing.</summary>
     public const string CurrentBusinessIdSql = $"NULLIF(current_setting('{BusinessId}', true), '')::uuid";
 

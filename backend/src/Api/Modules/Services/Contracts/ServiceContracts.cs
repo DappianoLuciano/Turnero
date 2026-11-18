@@ -10,4 +10,7 @@ public interface IServiceCatalog
     /// <summary>The services of the current business that exist among <paramref name="ids"/> (unknown ids are omitted).</summary>
     Task<IReadOnlyList<ServiceSummary>> GetByIdsAsync(
         IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken = default);
+
+    /// <summary>The services that can be booked (active), by name.</summary>
+    Task<IReadOnlyList<ServiceSummary>> ListActiveAsync(CancellationToken cancellationToken = default);
 }

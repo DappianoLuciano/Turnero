@@ -1,3 +1,4 @@
+using Api.Modules.Schedules.Contracts;
 using Api.Modules.Schedules.Features;
 using Api.Shared.Hosting;
 
@@ -6,7 +7,8 @@ namespace Api.Modules.Schedules;
 /// <summary>Schedules (horarios): weekly working hours per professional, closed days, and availability.</summary>
 internal static class SchedulesModule
 {
-    public static IServiceCollection AddSchedulesModule(this IServiceCollection services) => services;
+    public static IServiceCollection AddSchedulesModule(this IServiceCollection services) =>
+        services.AddScoped<IAvailabilityService, AvailabilityService>();
 
     public static void MapSchedulesEndpoints(ApiRouteGroups groups)
     {

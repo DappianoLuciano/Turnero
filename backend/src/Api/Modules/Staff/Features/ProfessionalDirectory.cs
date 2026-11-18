@@ -28,4 +28,11 @@ internal sealed class ProfessionalDirectory(AppDbContext db) : IProfessionalDire
             .Select(p => new ProfessionalSummary(p.Id, p.Name, p.IsActive, byProfessional[p.Id].ToList()))
             .ToList();
     }
+
+    public async Task<IReadOnlyList<ProfessionalSummary>> ListActiveAsync(CancellationToken cancellationToken = default)
+    {
+        var ids = await db.Set<Professional>().AsNoTracking().Where(p => p.IsActive).Select(p => p.Id)
+            .ToListAsync(cancellationToken);
+        return (await GetByIdsAsync(ids, cancellationToken)).OrderBy(p => p.Name).ToList();
+    }
 }

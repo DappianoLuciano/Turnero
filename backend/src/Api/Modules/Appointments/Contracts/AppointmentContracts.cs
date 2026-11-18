@@ -42,3 +42,20 @@ public interface IAppointmentOccupancy
     Task<IReadOnlyList<OccupiedPeriod>> GetOccupiedAsync(
         Guid professionalId, DateTimeOffset from, DateTimeOffset to, CancellationToken cancellationToken = default);
 }
+
+/// <summary>An appointment that was just booked.</summary>
+public sealed record CreatedAppointment(
+    Guid Id, Guid CustomerId, DateTimeOffset StartsAt, DateTimeOffset EndsAt, decimal Price, string Currency);
+
+/// <summary>Books appointments on behalf of other modules (public booking).</summary>
+public interface IAppointmentCreator
+{
+    /// <summary>
+    /// Books a scheduled appointment. Applies the same rules as the agenda: active professional and service, the
+    /// professional performs the service, the customer exists and is not archived. An overlap with another appointment
+    /// of the professional throws a 409 <c>AppException</c> (<c>appointment_overlap</c>).
+    /// </summary>
+    Task<CreatedAppointment> CreateAsync(
+        Guid customerId, Guid professionalId, Guid serviceId, DateTimeOffset startsAt,
+        CancellationToken cancellationToken = default);
+}

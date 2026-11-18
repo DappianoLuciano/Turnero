@@ -9,4 +9,7 @@ public interface IProfessionalDirectory
     /// <summary>The professionals of the current business that exist among <paramref name="ids"/> (unknown ids are omitted).</summary>
     Task<IReadOnlyList<ProfessionalSummary>> GetByIdsAsync(
         IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken = default);
+
+    /// <summary>The professionals that take appointments (active), by name.</summary>
+    Task<IReadOnlyList<ProfessionalSummary>> ListActiveAsync(CancellationToken cancellationToken = default);
 }

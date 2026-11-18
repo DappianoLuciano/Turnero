@@ -8,7 +8,8 @@ namespace Api.Modules.Customers;
 internal static class CustomersModule
 {
     public static IServiceCollection AddCustomersModule(this IServiceCollection services) =>
-        services.AddScoped<ICustomerDirectory, CustomerDirectory>();
+        services.AddScoped<ICustomerDirectory, CustomerDirectory>()
+            .AddScoped<ICustomerRegistry, CustomerRegistry>();
 
     public static void MapCustomersEndpoints(ApiRouteGroups groups)
     {

@@ -1,4 +1,5 @@
 using Api.Modules.Appointments;
+using Api.Modules.Booking;
 using Api.Modules.Businesses;
 using Api.Modules.CashRegister;
 using Api.Modules.Customers;
@@ -21,6 +22,7 @@ internal static class ModuleRegistry
     public static IServiceCollection AddModules(this IServiceCollection services) =>
         services
             .AddAppointmentsModule()
+            .AddBookingModule()
             .AddBusinessesModule()
             .AddCashRegisterModule()
             .AddCustomersModule()
@@ -34,6 +36,7 @@ internal static class ModuleRegistry
     public static IEndpointRouteBuilder MapModules(this IEndpointRouteBuilder app, ApiRouteGroups groups)
     {
         AppointmentsModule.MapAppointmentsEndpoints(groups);
+        BookingModule.MapBookingEndpoints(groups);
         BusinessesModule.MapBusinessesEndpoints(groups);
         CashRegisterModule.MapCashRegisterEndpoints(groups);
         CustomersModule.MapCustomersEndpoints(groups);

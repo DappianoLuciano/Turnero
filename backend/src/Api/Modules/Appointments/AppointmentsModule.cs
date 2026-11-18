@@ -11,7 +11,8 @@ internal static class AppointmentsModule
         services.AddScoped<AppointmentBooking>().AddScoped<AppointmentViews>()
             .AddScoped<IAppointmentLookup, AppointmentLookup>()
             .AddScoped<IAppointmentStatistics, AppointmentStatistics>()
-            .AddScoped<IAppointmentOccupancy, AppointmentOccupancy>();
+            .AddScoped<IAppointmentOccupancy, AppointmentOccupancy>()
+            .AddScoped<IAppointmentCreator, AppointmentCreator>();
 
     public static void MapAppointmentsEndpoints(ApiRouteGroups groups)
     {

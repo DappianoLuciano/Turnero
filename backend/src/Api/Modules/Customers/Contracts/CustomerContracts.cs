@@ -10,3 +10,14 @@ public interface ICustomerDirectory
     Task<IReadOnlyList<CustomerSummary>> GetByIdsAsync(
         IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken = default);
 }
+
+/// <summary>Finds or creates customers by phone, for flows without a logged-in user (public booking).</summary>
+public interface ICustomerRegistry
+{
+    /// <summary>
+    /// The active customer with that phone, or a new one with that name. An existing customer keeps the name the
+    /// business has for them. Throws a 400 <c>AppException</c> for a blank name or an invalid phone.
+    /// </summary>
+    Task<CustomerSummary> FindOrCreateByPhoneAsync(
+        string name, string phone, CancellationToken cancellationToken = default);
+}

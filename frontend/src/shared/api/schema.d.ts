@@ -452,6 +452,54 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/public/{slug}/catalog': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['GetPublicCatalog'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/public/{slug}/availability': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['GetPublicAvailability'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/public/{slug}/appointments': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['CreatePublicBooking'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -602,6 +650,16 @@ export interface components {
       name: string;
       serviceIds: string[];
     };
+    CreatePublicBookingRequest: {
+      /** Format: uuid */
+      professionalId: string;
+      /** Format: uuid */
+      serviceId: string;
+      /** Format: date-time */
+      startsAt: string;
+      customerName: string;
+      customerPhone: string;
+    };
     CreateScheduleExceptionRequest: {
       /** Format: date */
       date: string;
@@ -705,6 +763,60 @@ export interface components {
       name: string;
       isActive: boolean;
       serviceIds: string[];
+    };
+    PublicAvailabilityResponse: {
+      /** Format: date */
+      date: string;
+      isClosed: boolean;
+      slots: components['schemas']['PublicSlotResponse'][];
+    };
+    PublicBookingResponse: {
+      /** Format: uuid */
+      appointmentId: string;
+      businessName: string;
+      serviceName: string;
+      professionalName: string;
+      customerName: string;
+      /** Format: date-time */
+      startsAt: string;
+      /** Format: date-time */
+      endsAt: string;
+      /** Format: double */
+      price: number | string;
+      currency: string;
+    };
+    PublicBusinessResponse: {
+      name: string;
+      slug: string;
+      timeZone: string;
+      currency: string;
+    };
+    PublicCatalogResponse: {
+      business: components['schemas']['PublicBusinessResponse'];
+      services: components['schemas']['PublicServiceResponse'][];
+      professionals: components['schemas']['PublicProfessionalResponse'][];
+    };
+    PublicProfessionalResponse: {
+      /** Format: uuid */
+      id: string;
+      name: string;
+      serviceIds: string[];
+    };
+    PublicServiceResponse: {
+      /** Format: uuid */
+      id: string;
+      name: string;
+      /** Format: int32 */
+      durationMinutes: number | string;
+      /** Format: double */
+      price: number | string;
+      currency: string;
+    };
+    PublicSlotResponse: {
+      /** Format: date-time */
+      startsAt: string;
+      /** Format: int32 */
+      minutes: number | string;
     };
     RegisterCashMovementRequest: {
       kind: components['schemas']['CashKind'];
@@ -2209,6 +2321,134 @@ export interface operations {
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetails'];
+        };
+      };
+    };
+  };
+  GetPublicCatalog: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        slug: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['PublicCatalogResponse'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetails'];
+        };
+      };
+    };
+  };
+  GetPublicAvailability: {
+    parameters: {
+      query: {
+        professionalId: string;
+        serviceId: string;
+        date: string;
+      };
+      header?: never;
+      path: {
+        slug: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['PublicAvailabilityResponse'];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetails'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetails'];
+        };
+      };
+    };
+  };
+  CreatePublicBooking: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        slug: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CreatePublicBookingRequest'];
+      };
+    };
+    responses: {
+      /** @description Created */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['PublicBookingResponse'];
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['HttpValidationProblemDetails'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetails'];
+        };
+      };
+      /** @description Conflict */
+      409: {
         headers: {
           [name: string]: unknown;
         };

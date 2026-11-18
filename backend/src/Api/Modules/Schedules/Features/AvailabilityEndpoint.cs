@@ -1,5 +1,6 @@
 using Api.Modules.Appointments.Contracts;
 using Api.Modules.Businesses.Contracts;
+using Api.Modules.Schedules.Contracts;
 using Api.Modules.Schedules.Domain;
 using Api.Modules.Services.Contracts;
 using Api.Modules.Staff.Contracts;
@@ -19,13 +20,10 @@ public sealed record AvailabilityResponse(
 
 /// <summary>
 /// GET /api/availability?professionalId=&amp;serviceId=&amp;date=: free start times of a professional for a service on
-/// a local day: working blocks, minus closed days, minus existing appointments, minus times already past.
+/// a local day (see <see cref="IAvailabilityService"/>).
 /// </summary>
 internal static class GetAvailability
 {
-    /// <summary>Start times are offered every 15 minutes inside each working block.</summary>
-    public const int StepMinutes = 15;
-
     public static void Map(RouteGroupBuilder group) =>
         group.MapGet("/availability", HandleAsync)
             .WithName("GetAvailability")
@@ -35,9 +33,25 @@ internal static class GetAvailability
             .ProducesProblem(StatusCodes.Status404NotFound);
 
     private static async Task<IResult> HandleAsync(
-        Guid professionalId, Guid serviceId, DateOnly date, AppDbContext db, IBusinessDirectory businesses,
-        IProfessionalDirectory professionals, IServiceCatalog catalog, IAppointmentOccupancy occupancy,
-        TimeProvider clock, CancellationToken cancellationToken)
+        Guid professionalId, Guid serviceId, DateOnly date, IAvailabilityService availability,
+        CancellationToken cancellationToken)
+    {
+        var result = await availability.GetAsync(professionalId, serviceId, date, cancellationToken);
+        return TypedResults.Ok(new AvailabilityResponse(
+            result.Date, result.DurationMinutes, result.ClosedReason, result.IsClosed,
+            result.Slots.Select(s => new AvailableSlot(s.StartsAt, s.Minutes)).ToList()));
+    }
+}
+
+internal sealed class AvailabilityService(
+    AppDbContext db, IBusinessDirectory businesses, IProfessionalDirectory professionals, IServiceCatalog catalog,
+    IAppointmentOccupancy occupancy, TimeProvider clock) : IAvailabilityService
+{
+    /// <summary>Start times are offered every 15 minutes inside each working block.</summary>
+    public const int StepMinutes = 15;
+
+    public async Task<AvailabilityResult> GetAsync(
+        Guid professionalId, Guid serviceId, DateOnly date, CancellationToken cancellationToken = default)
     {
         var business = await businesses.GetCurrentAsync(cancellationToken)
             ?? throw AppException.NotFound("business_not_found", "Business not found.");
@@ -57,7 +71,7 @@ internal static class GetAvailability
             .FirstOrDefaultAsync(cancellationToken);
         if (closed is not null)
         {
-            return TypedResults.Ok(new AvailabilityResponse(date, service.DurationMinutes, closed.Reason, true, []));
+            return new AvailabilityResult(date, service.DurationMinutes, true, closed.Reason, []);
         }
 
         var dayOfWeek = (int)date.DayOfWeek;
@@ -71,7 +85,7 @@ internal static class GetAvailability
         var now = clock.GetUtcNow();
         var midnight = date.ToDateTime(TimeOnly.MinValue);
 
-        var slots = new List<AvailableSlot>();
+        var slots = new List<AvailabilitySlot>();
         foreach (var block in blocks)
         {
             for (var minute = block.StartMinute; minute + service.DurationMinutes <= block.EndMinute; minute += StepMinutes)
@@ -80,11 +94,11 @@ internal static class GetAvailability
                 var end = start.AddMinutes(service.DurationMinutes);
                 if (start > now && !taken.Any(t => t.Start < end && t.End > start))
                 {
-                    slots.Add(new AvailableSlot(start, minute));
+                    slots.Add(new AvailabilitySlot(start, minute));
                 }
             }
         }
 
-        return TypedResults.Ok(new AvailabilityResponse(date, service.DurationMinutes, null, false, slots));
+        return new AvailabilityResult(date, service.DurationMinutes, false, null, slots);
     }
 }
