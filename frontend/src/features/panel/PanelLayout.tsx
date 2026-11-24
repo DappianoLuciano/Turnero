@@ -3,6 +3,9 @@ import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router';
 import { logout } from '@/features/auth/auth-api';
 import { useSession } from '@/features/auth/use-session';
+import { SubscriptionBanner } from '@/features/subscription/SubscriptionBanner';
+import { SubscriptionExpiredPage } from '@/features/subscription/SubscriptionExpiredPage';
+import { useSubscription } from '@/features/subscription/subscription-api';
 import { t } from '@/shared/i18n';
 import { cn } from '@/shared/lib/utils';
 import { Button } from '@/shared/ui/button';
@@ -13,6 +16,8 @@ export function PanelLayout() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const session = useSession();
+  const subscription = useSubscription();
+  const expired = subscription.data?.state === 'Expired';
 
   const handleLogout = async () => {
     await logout();
@@ -90,7 +95,14 @@ export function PanelLayout() {
           <span className="font-semibold">{t.app.name}</span>
         </header>
         <main className="flex-1 overflow-y-auto p-4 md:p-8">
-          <Outlet />
+          {expired ? (
+            <SubscriptionExpiredPage />
+          ) : (
+            <>
+              <SubscriptionBanner />
+              <Outlet />
+            </>
+          )}
         </main>
       </div>
     </div>

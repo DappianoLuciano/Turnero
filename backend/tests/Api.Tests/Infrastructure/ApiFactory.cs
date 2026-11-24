@@ -20,6 +20,9 @@ public sealed class ApiFactory(PostgresFixture db) : WebApplicationFactory<Progr
             ["Jwt:SigningKey"] = SigningKey,
             ["Jwt:Issuer"] = "test-issuer",
             ["Jwt:Audience"] = "test-audience",
+            ["RateLimiting:SignupsPerHour"] = "10000",
+            ["RateLimiting:PublicBookingsPerHour"] = "100000",
+            ["RateLimiting:PublicPerMinute"] = "100000",
         }));
     }
 

@@ -36,7 +36,7 @@ internal static class GetAvailability
         Guid professionalId, Guid serviceId, DateOnly date, IAvailabilityService availability,
         CancellationToken cancellationToken)
     {
-        var result = await availability.GetAsync(professionalId, serviceId, date, cancellationToken);
+        var result = await availability.GetAsync(professionalId, serviceId, date, cancellationToken: cancellationToken);
         return TypedResults.Ok(new AvailabilityResponse(
             result.Date, result.DurationMinutes, result.ClosedReason, result.IsClosed,
             result.Slots.Select(s => new AvailableSlot(s.StartsAt, s.Minutes)).ToList()));
@@ -51,7 +51,8 @@ internal sealed class AvailabilityService(
     public const int StepMinutes = 15;
 
     public async Task<AvailabilityResult> GetAsync(
-        Guid professionalId, Guid serviceId, DateOnly date, CancellationToken cancellationToken = default)
+        Guid professionalId, Guid serviceId, DateOnly date, Guid? ignoreAppointmentId = null,
+        CancellationToken cancellationToken = default)
     {
         var business = await businesses.GetCurrentAsync(cancellationToken)
             ?? throw AppException.NotFound("business_not_found", "Business not found.");
@@ -81,7 +82,7 @@ internal sealed class AvailabilityService(
             .ToListAsync(cancellationToken);
 
         var (dayStart, dayEnd) = BusinessTimeZone.LocalDaysToUtc(date, date, business.TimeZone);
-        var taken = await occupancy.GetOccupiedAsync(professionalId, dayStart, dayEnd, cancellationToken);
+        var taken = await occupancy.GetOccupiedAsync(professionalId, dayStart, dayEnd, ignoreAppointmentId, cancellationToken);
         var now = clock.GetUtcNow();
         var midnight = date.ToDateTime(TimeOnly.MinValue);
 

@@ -16,6 +16,13 @@ export const sessionFixture: SessionResponse = {
   },
 };
 
+export const subscriptionFixture = (state: 'Trial' | 'Active' | 'Expired', daysLeft: number) => ({
+  state,
+  trialEndsAt: '2026-11-20T00:00:00Z',
+  paidUntil: state === 'Active' ? '2026-12-20T00:00:00Z' : null,
+  daysLeft,
+});
+
 export const problem = (status: number, code: string) =>
   HttpResponse.json(
     { status, title: code, code },
@@ -25,4 +32,6 @@ export const problem = (status: number, code: string) =>
 /** Default: no session (refresh fails). Tests override with server.use(...). */
 export const server = setupServer(
   http.post(`${API}/api/auth/refresh`, () => problem(401, 'invalid_refresh_token')),
+  // Default: a paid, far-from-expiring subscription (no banner, no paywall).
+  http.get(`${API}/api/subscription`, () => HttpResponse.json(subscriptionFixture('Active', 20))),
 );

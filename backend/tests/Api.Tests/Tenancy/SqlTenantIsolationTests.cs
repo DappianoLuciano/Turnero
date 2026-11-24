@@ -395,6 +395,29 @@ public sealed class SqlTenantIsolationTests(PostgresFixture db) : IAsyncLifetime
         VALUES (gen_random_uuid(), @b, 'Cliente', false, now(), now())
         """;
 
+    [Fact]
+    public async Task Subscriptions_table_is_isolated_with_plain_sql()
+    {
+        await AsTenantAsync(_t.A.BusinessId, null, async run =>
+        {
+            (await run.ScalarAsync("SELECT count(*) FROM subscriptions")).ShouldBe(1);
+            (await run.ScalarAsync("SELECT count(*) FROM subscriptions WHERE business_id = @b", _t.B.BusinessId)).ShouldBe(0);
+            (await run.ExecuteAsync("UPDATE subscriptions SET paid_until = now() + interval '1 year' WHERE business_id = @b",
+                _t.B.BusinessId)).ShouldBe(0);
+            (await run.ExecuteAsync("DELETE FROM subscriptions WHERE business_id = @b", _t.B.BusinessId)).ShouldBe(0);
+        });
+
+        var ex = await Should.ThrowAsync<PostgresException>(() => AsTenantAsync(_t.A.BusinessId, null, run =>
+            run.ExecuteAsync("""
+                INSERT INTO subscriptions (id, business_id, trial_ends_at, created_at, updated_at)
+                VALUES (gen_random_uuid(), @b, now(), now(), now())
+                """, _t.B.BusinessId)));
+        ex.SqlState.ShouldBe(PostgresErrorCodes.InsufficientPrivilege);
+
+        await AsTenantAsync(null, null, async run =>
+            (await run.ScalarAsync("SELECT count(*) FROM subscriptions")).ShouldBe(0));
+    }
+
     private const string InsertService = """
         INSERT INTO services (id, business_id, name, duration_minutes, price, currency, is_active, created_at, updated_at)
         VALUES (gen_random_uuid(), @b, 'Corte', 30, 100, 'ARS', true, now(), now())

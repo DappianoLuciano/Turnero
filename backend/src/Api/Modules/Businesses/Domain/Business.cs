@@ -10,6 +10,9 @@ public sealed partial class Business : ITenantRoot
 {
     public const int NameMaxLength = 120;
     public const int SlugMaxLength = 63;
+    public const int PhoneMaxLength = 30;
+    public const int DefaultChangeNoticeHours = 12;
+    public const int MaxChangeNoticeHours = 720;
 
     private Business()
     {
@@ -25,6 +28,16 @@ public sealed partial class Business : ITenantRoot
     public string TimeZone { get; private set; } = BusinessTimeZone.Default;
 
     public string Currency { get; private set; } = Money.DefaultCurrency;
+
+    /// <summary>Contact phone shown to customers on the public pages (optional).</summary>
+    public string? Phone { get; private set; }
+
+    /// <summary>
+    /// A customer can cancel or reschedule on their own only when the appointment is at least this many hours away.
+    /// 0 means until it starts.
+    /// </summary>
+    public int CustomerChangeNoticeHours { get; private set; } = DefaultChangeNoticeHours;
+
     public DateTimeOffset CreatedAt { get; private set; }
 
     public static Business Create(string name, string slug, DateTimeOffset now, string? timeZone = null)
@@ -50,6 +63,14 @@ public sealed partial class Business : ITenantRoot
             Currency = Money.DefaultCurrency,
             CreatedAt = BusinessTimeZone.EnsureUtc(now),
         };
+    }
+
+    public void UpdateSettings(string? phone, int customerChangeNoticeHours)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(customerChangeNoticeHours);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(customerChangeNoticeHours, MaxChangeNoticeHours);
+        Phone = string.IsNullOrWhiteSpace(phone) ? null : phone.Trim();
+        CustomerChangeNoticeHours = customerChangeNoticeHours;
     }
 
     /// <summary>Lowercase letters, digits and inner hyphens; valid as a DNS label (subdomain-ready).</summary>

@@ -11,11 +11,13 @@ internal static class BusinessesModule
     {
         services.AddScoped<IBusinessDirectory, BusinessDirectory>();
         services.AddScoped<IBusinessProvisioning, BusinessProvisioning>();
+        services.AddScoped<IBusinessLookup, BusinessLookup>();
         return services;
     }
 
     public static void MapBusinessesEndpoints(ApiRouteGroups groups)
     {
         GetCurrentBusiness.Map(groups.Tenant);
+        UpdateBusinessSettings.Map(groups.Tenant);
     }
 }

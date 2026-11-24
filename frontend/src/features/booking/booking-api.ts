@@ -41,6 +41,8 @@ export interface PublicBooking {
   endsAt: string;
   price: number;
   currency: string;
+  /** Secret of the link where the customer can change or cancel (`/r/:slug/turno/:token`). */
+  manageToken: string;
 }
 
 export interface BookingRequest {

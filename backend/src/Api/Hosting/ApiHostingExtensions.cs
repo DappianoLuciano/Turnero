@@ -66,11 +66,13 @@ internal static class ApiHostingExtensions
             Anonymous: api.MapGroup(string.Empty).AllowAnonymous(),
             Tenant: api.MapGroup(string.Empty)
                 .RequireAuthorization(AuthPolicies.Member)
-                .AddEndpointFilter<TenantTransactionFilter>(),
+                .AddEndpointFilter<TenantTransactionFilter>()
+                .AddEndpointFilter<SubscriptionGateFilter>(),
             Public: api.MapGroup("/public/{slug}")
                 .AllowAnonymous()
                 .RequireRateLimiting(PublicRateLimiting.Policy)
-                .AddEndpointFilter<PublicTenantFilter>());
+                .AddEndpointFilter<PublicTenantFilter>()
+                .AddEndpointFilter<SubscriptionGateFilter>());
         app.MapModules(groups);
 
         return app;

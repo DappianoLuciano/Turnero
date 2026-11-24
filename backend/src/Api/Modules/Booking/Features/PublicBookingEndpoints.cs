@@ -16,7 +16,7 @@ namespace Api.Modules.Booking.Features;
 // Everything in this file is PUBLIC (no login): responses carry only what a customer needs to book.
 // Never add customers, prices of past appointments, notes or anything about other people.
 
-public sealed record PublicBusinessResponse(string Name, string Slug, string TimeZone, string Currency);
+public sealed record PublicBusinessResponse(string Name, string Slug, string TimeZone, string Currency, string? Phone);
 
 public sealed record PublicServiceResponse(Guid Id, string Name, int DurationMinutes, decimal Price, string Currency);
 
@@ -40,7 +40,8 @@ public sealed record PublicBookingResponse(
     DateTimeOffset StartsAt,
     DateTimeOffset EndsAt,
     decimal Price,
-    string Currency);
+    string Currency,
+    string ManageToken);
 
 /// <summary>GET /api/public/{slug}/catalog: the business, what it offers and who performs it.</summary>
 internal static class GetPublicCatalog
@@ -71,7 +72,7 @@ internal static class GetPublicCatalog
         var offered = bookable.SelectMany(p => p.ServiceIds).ToHashSet();
 
         return TypedResults.Ok(new PublicCatalogResponse(
-            new PublicBusinessResponse(business.Name, business.Slug, business.TimeZone, business.Currency),
+            new PublicBusinessResponse(business.Name, business.Slug, business.TimeZone, business.Currency, business.Phone),
             allServices.Where(s => offered.Contains(s.Id))
                 .Select(s => new PublicServiceResponse(s.Id, s.Name, s.DurationMinutes, s.Price, s.Currency)).ToList(),
             bookable));
@@ -98,7 +99,7 @@ internal static class GetPublicAvailability
             ?? throw AppException.NotFound("business_not_found", "Business not found.");
         BookingRules.EnsureBookableDate(date, business.TimeZone, clock);
 
-        var result = await availability.GetAsync(professionalId, serviceId, date, cancellationToken);
+        var result = await availability.GetAsync(professionalId, serviceId, date, cancellationToken: cancellationToken);
         return TypedResults.Ok(new PublicAvailabilityResponse(
             result.Date, result.IsClosed, result.Slots.Select(s => new PublicSlotResponse(s.StartsAt, s.Minutes)).ToList()));
     }
@@ -141,7 +142,7 @@ internal static class CreatePublicBooking
     private static async Task<IResult> HandleAsync(
         [FromRoute] string slug, CreatePublicBookingRequest request, IBusinessDirectory businesses,
         IServiceCatalog catalog, IProfessionalDirectory professionals, IAvailabilityService availability,
-        ICustomerRegistry customers, IAppointmentCreator appointments, TimeProvider clock,
+        ICustomerRegistry customers, IAppointmentCreator appointments, IAppointmentLinks links, TimeProvider clock,
         CancellationToken cancellationToken)
     {
         _ = slug; // Resolved to the tenant by PublicTenantFilter; declared so it appears in the OpenAPI contract.
@@ -153,7 +154,7 @@ internal static class CreatePublicBooking
 
         // The time must be one the availability offers right now: it is the single source of truth for working
         // hours, closed days and existing appointments.
-        var offered = await availability.GetAsync(request.ProfessionalId, request.ServiceId, date, cancellationToken);
+        var offered = await availability.GetAsync(request.ProfessionalId, request.ServiceId, date, cancellationToken: cancellationToken);
         if (!offered.Slots.Any(s => s.StartsAt == request.StartsAt))
         {
             throw BookingRules.SlotUnavailable();
@@ -177,7 +178,7 @@ internal static class CreatePublicBooking
         var professional = (await professionals.GetByIdsAsync([request.ProfessionalId], cancellationToken)).Single();
         return TypedResults.Created($"/api/public/{business.Slug}/appointments/{created.Id}", new PublicBookingResponse(
             created.Id, business.Name, service.Name, professional.Name, customer.Name, created.StartsAt, created.EndsAt,
-            created.Price, created.Currency));
+            created.Price, created.Currency, links.CreateToken(created.Id)));
     }
 }
 

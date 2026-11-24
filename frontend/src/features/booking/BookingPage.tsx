@@ -45,9 +45,15 @@ export function BookingPage() {
 
   if (catalog.isError) {
     const notFound = catalog.error instanceof ApiError && catalog.error.status === 404;
+    const unavailable = catalog.error instanceof ApiError && catalog.error.status === 402;
     return (
       <Shell>
-        {notFound ? (
+        {unavailable ? (
+          <div className="flex flex-col gap-2 text-center">
+            <h1 className="text-2xl font-semibold">{t.booking.closed.title}</h1>
+            <p className="text-muted-foreground">{t.booking.closed.description}</p>
+          </div>
+        ) : notFound ? (
           <div className="flex flex-col gap-2 text-center">
             <h1 className="text-2xl font-semibold">{t.booking.notFound.title}</h1>
             <p className="text-muted-foreground">{t.booking.notFound.description}</p>
@@ -127,7 +133,7 @@ export function BookingPage() {
       )}
 
       {confirmed ? (
-        <ConfirmedStep booking={confirmed} timeZone={business.timeZone} onAnother={reset} />
+        <ConfirmedStep slug={slug} booking={confirmed} timeZone={business.timeZone} onAnother={reset} />
       ) : services.length === 0 ? (
         <p className="text-muted-foreground text-center">{t.booking.nothingToBook}</p>
       ) : step === 1 ? (

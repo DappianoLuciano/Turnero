@@ -7,7 +7,9 @@ using Api.Modules.Payments;
 using Api.Modules.Reports;
 using Api.Modules.Schedules;
 using Api.Modules.Services;
+using Api.Modules.Signup;
 using Api.Modules.Staff;
+using Api.Modules.Subscriptions;
 using Api.Modules.Users;
 using Api.Shared.Hosting;
 
@@ -30,7 +32,9 @@ internal static class ModuleRegistry
             .AddReportsModule()
             .AddSchedulesModule()
             .AddServicesModule()
+            .AddSignupModule()
             .AddStaffModule()
+            .AddSubscriptionsModule()
             .AddUsersModule();
 
     public static IEndpointRouteBuilder MapModules(this IEndpointRouteBuilder app, ApiRouteGroups groups)
@@ -44,7 +48,9 @@ internal static class ModuleRegistry
         ReportsModule.MapReportsEndpoints(groups);
         SchedulesModule.MapSchedulesEndpoints(groups);
         ServicesModule.MapServicesEndpoints(groups);
+        SignupModule.MapSignupEndpoints(groups);
         StaffModule.MapStaffEndpoints(groups);
+        SubscriptionsModule.MapSubscriptionsEndpoints(groups);
         UsersModule.MapUsersEndpoints(groups);
         return app;
     }

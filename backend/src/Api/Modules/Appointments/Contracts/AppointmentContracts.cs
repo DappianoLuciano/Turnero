@@ -38,9 +38,13 @@ public sealed record OccupiedPeriod(DateTimeOffset Start, DateTimeOffset End);
 /// <summary>Which periods of a professional are taken (for availability).</summary>
 public interface IAppointmentOccupancy
 {
-    /// <summary>Periods of scheduled or completed appointments of the professional that intersect [from, to).</summary>
+    /// <summary>
+    /// Periods of scheduled or completed appointments of the professional that intersect [from, to), optionally
+    /// leaving out one appointment (the one being rescheduled must not block its own new time).
+    /// </summary>
     Task<IReadOnlyList<OccupiedPeriod>> GetOccupiedAsync(
-        Guid professionalId, DateTimeOffset from, DateTimeOffset to, CancellationToken cancellationToken = default);
+        Guid professionalId, DateTimeOffset from, DateTimeOffset to, Guid? ignoreAppointmentId = null,
+        CancellationToken cancellationToken = default);
 }
 
 /// <summary>An appointment that was just booked.</summary>
@@ -58,4 +62,36 @@ public interface IAppointmentCreator
     Task<CreatedAppointment> CreateAsync(
         Guid customerId, Guid professionalId, Guid serviceId, DateTimeOffset startsAt,
         CancellationToken cancellationToken = default);
+}
+
+/// <summary>An appointment as its customer sees and manages it (through the link they were given).</summary>
+public sealed record ManagedAppointment(
+    Guid Id, Guid CustomerId, Guid ProfessionalId, Guid ServiceId, string Status, DateTimeOffset StartsAt,
+    DateTimeOffset EndsAt, decimal Price, string Currency);
+
+/// <summary>
+/// Secret links to one appointment, for its customer (no account): view, reschedule or cancel. The token is a
+/// signature of the appointment id, so nothing is stored and the business can include the link in a reminder.
+/// </summary>
+public interface IAppointmentLinks
+{
+    /// <summary>The token of an appointment of the current business.</summary>
+    string CreateToken(Guid appointmentId);
+
+    /// <summary>The appointment the token points to in the current business, or null if it is invalid or unknown.</summary>
+    Task<ManagedAppointment?> FindByTokenAsync(string token, CancellationToken cancellationToken = default);
+}
+
+/// <summary>Changes a customer can make to their own appointment. Callers enforce the business's notice policy.</summary>
+public interface IAppointmentSelfService
+{
+    /// <summary>
+    /// Moves a scheduled appointment to another time, keeping professional, service, duration and price. A 409
+    /// <c>appointment_not_editable</c> if it is not scheduled; <c>appointment_overlap</c> if the time is taken.
+    /// </summary>
+    Task<ManagedAppointment> RescheduleAsync(
+        Guid appointmentId, DateTimeOffset startsAt, CancellationToken cancellationToken = default);
+
+    /// <summary>Cancels a scheduled appointment. A 409 <c>appointment_not_editable</c> if it is not scheduled.</summary>
+    Task<ManagedAppointment> CancelAsync(Guid appointmentId, CancellationToken cancellationToken = default);
 }

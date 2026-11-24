@@ -23,11 +23,92 @@ export const esAR = {
       submit: 'Ingresar',
       submitting: 'Ingresando…',
     },
+    signup: {
+      title: 'Creá tu cuenta',
+      subtitle: 'Probá gratis y empezá a recibir turnos hoy',
+      businessName: 'Nombre del negocio',
+      businessNamePlaceholder: 'Barbería Don José',
+      fullName: 'Tu nombre',
+      passwordHint: 'Mínimo 8 caracteres.',
+      submit: 'Crear cuenta',
+      submitting: 'Creando tu cuenta…',
+      trialNote: 'Los primeros 2 días son gratis. No pedimos tarjeta.',
+      haveAccount: '¿Ya tenés cuenta?',
+      goToLogin: 'Ingresá',
+      validation: {
+        businessRequired: 'Ingresá el nombre de tu negocio.',
+        businessTooLong: 'El nombre no puede superar los 120 caracteres.',
+        nameRequired: 'Ingresá tu nombre.',
+        nameTooLong: 'El nombre no puede superar los 120 caracteres.',
+        passwordShort: 'La contraseña debe tener al menos 8 caracteres.',
+        passwordLong: 'La contraseña no puede superar los 128 caracteres.',
+      },
+    },
+    noAccount: '¿Todavía no tenés cuenta?',
+    goToSignup: 'Creala gratis',
     logout: 'Cerrar sesión',
     validation: {
       emailRequired: 'Ingresá tu email.',
       emailInvalid: 'El email no es válido.',
       passwordRequired: 'Ingresá tu contraseña.',
+    },
+  },
+  reminders: {
+    title: 'Recordatorios',
+    description:
+      'Mandá un WhatsApp a cada cliente con su turno y el enlace para cambiarlo o cancelarlo. Se abre WhatsApp con el mensaje listo: solo tenés que enviarlo.',
+    today: 'Hoy',
+    tomorrow: 'Mañana',
+    empty: 'No hay turnos programados para ese día.',
+    noPhone: 'Sin teléfono',
+    invalidPhone: 'Teléfono no válido',
+    send: 'Enviar WhatsApp',
+    resend: 'Volver a enviar',
+    sent: 'Enviado',
+    sendTo: (name: string) => `Enviar recordatorio a ${name}`,
+    summary: (done: number, total: number) => `${done} de ${total} recordatorios enviados`,
+    message: (v: {
+      customer: string;
+      business: string;
+      service: string;
+      professional: string;
+      when: string;
+      link: string;
+    }) =>
+      `Hola ${v.customer}! Te recordamos tu turno en ${v.business}: ${v.service} con ${v.professional}, ${v.when}. ` +
+      `Si necesitás cambiarlo o cancelarlo, entrá acá: ${v.link}`,
+    weekdayTime: (weekday: string, date: string, time: string) => `${weekday} ${date} a las ${time}`,
+  },
+  settings: {
+    title: 'Ajustes',
+    phone: 'Teléfono del negocio',
+    phoneHint: 'Lo ven los clientes cuando ya no pueden cambiar un turno por su cuenta.',
+    noticeHours: 'Horas de anticipación para cambiar o cancelar',
+    noticeHint:
+      'Los clientes pueden cambiar o cancelar su turno por su cuenta hasta esta cantidad de horas antes. Con 0 pueden hasta que empieza.',
+    save: 'Guardar',
+    saving: 'Guardando…',
+    saved: 'Cambios guardados.',
+    ownerOnly: 'Solo el dueño del negocio puede cambiar los ajustes.',
+    validation: {
+      noticeRange: 'Ingresá un número de horas entre 0 y 720.',
+      phoneTooLong: 'El teléfono no puede superar los 30 caracteres.',
+    },
+  },
+  subscription: {
+    banner: {
+      trial: (days: number) =>
+        days <= 1 ? 'Tu prueba gratis termina hoy.' : `Estás en tu prueba gratis: te quedan ${days} días.`,
+      renewal: (days: number) =>
+        days <= 1 ? 'Tu suscripción vence hoy.' : `Tu suscripción vence en ${days} días.`,
+    },
+    expired: {
+      title: 'Tu prueba gratis terminó',
+      description: 'Para seguir usando el panel y recibir reservas online, activá tu suscripción.',
+      dataSafe: 'No perdiste nada: tus datos están guardados y vuelven a estar disponibles apenas se active.',
+      yourId: (slug: string) => `Tu identificador: ${slug}`,
+      contactUs: 'Escribinos y te la activamos.',
+      contact: (email: string) => `Escribinos a ${email}`,
     },
   },
   panel: {
@@ -43,6 +124,8 @@ export const esAR = {
       payments: 'Cobros',
       cashRegister: 'Caja',
       reports: 'Reportes',
+      reminders: 'Recordatorios',
+      settings: 'Ajustes',
     },
     home: {
       greeting: (name: string) => `¡Hola, ${name}!`,
@@ -384,6 +467,11 @@ export const esAR = {
   },
   booking: {
     title: 'Reservá tu turno',
+    closed: {
+      title: 'Este negocio no está tomando reservas',
+      description:
+        'Por el momento no se pueden reservar turnos online. Probá de nuevo más tarde o contactá al negocio.',
+    },
     notFound: {
       title: 'No encontramos este negocio',
       description: 'Revisá que el enlace esté bien escrito o pedíselo de nuevo al negocio.',
@@ -430,6 +518,38 @@ export const esAR = {
       price: 'Precio',
       payAtPlace: 'El pago se hace en el local.',
       another: 'Reservar otro turno',
+      manageHint: 'Guardá este enlace: desde ahí podés cambiar el horario o cancelar tu turno.',
+      manage: 'Cambiar o cancelar mi turno',
+    },
+    manage: {
+      title: 'Tu turno',
+      state: 'Estado',
+      notFound: {
+        title: 'No encontramos este turno',
+        description: 'Revisá que el enlace esté completo o pedíselo de nuevo al negocio.',
+      },
+      change: 'Cambiar horario',
+      cancel: 'Cancelar turno',
+      pickTime: 'Elegí el nuevo horario',
+      confirmMoveTitle: 'Confirmar el cambio de horario',
+      confirmMoveBefore: '¿Pasar tu turno a',
+      confirmMoveAfter: '?',
+      confirmMoveYes: 'Sí, cambiar',
+      moving: 'Cambiando…',
+      moved: '¡Listo! Cambiamos tu turno al nuevo horario.',
+      confirmCancelTitle: 'Confirmar la cancelación',
+      confirmCancel: '¿Seguro que querés cancelar tu turno?',
+      confirmCancelYes: 'Sí, cancelar turno',
+      cancelling: 'Cancelando…',
+      keep: 'No, mantenerlo',
+      cancelled: 'Tu turno quedó cancelado.',
+      bookAnother: 'Reservar otro turno',
+      tooLate: (hours: number) =>
+        hours === 0
+          ? 'Este turno ya no se puede cambiar por acá.'
+          : `Los turnos se pueden cambiar o cancelar por acá hasta ${hours} ${hours === 1 ? 'hora' : 'horas'} antes.`,
+      contact: (phone: string) => `Para modificarlo, comunicate con el negocio al ${phone}.`,
+      contactBusiness: 'Para modificarlo, comunicate con el negocio.',
     },
     unavailable: 'Ese horario se acaba de ocupar. Elegí otro, por favor.',
   },
@@ -447,6 +567,10 @@ export const esAR = {
       invalid_refresh_token: 'Tu sesión expiró. Ingresá de nuevo.',
       session_invalid: 'Tu sesión ya no es válida. Ingresá de nuevo.',
       validation_failed: 'Revisá los datos ingresados.',
+      email_taken: 'Ya existe una cuenta con ese email. Ingresá o usá otro.',
+      slug_taken: 'No pudimos asignar una dirección a tu negocio. Probá con otro nombre.',
+      subscription_required: 'Tu suscripción no está activa.',
+      change_window_closed: 'Ya es tarde para cambiar este turno por acá. Comunicate con el negocio.',
       service_not_found: 'El servicio ya no existe.',
       appointment_overlap: 'Ese profesional ya tiene un turno en ese horario.',
       appointment_not_found: 'El turno ya no existe.',

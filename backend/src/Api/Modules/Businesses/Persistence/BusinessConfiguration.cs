@@ -16,6 +16,8 @@ internal sealed class BusinessConfiguration : IEntityTypeConfiguration<Business>
         builder.HasIndex(b => b.Slug).IsUnique();
         builder.Property(b => b.TimeZone).HasMaxLength(64).IsRequired();
         builder.Property(b => b.Currency).HasColumnType("char(3)").IsRequired();
+        builder.Property(b => b.Phone).HasMaxLength(Business.PhoneMaxLength);
+        builder.Property(b => b.CustomerChangeNoticeHours).HasDefaultValue(Business.DefaultChangeNoticeHours);
         builder.Property(b => b.CreatedAt).IsRequired();
     }
 }

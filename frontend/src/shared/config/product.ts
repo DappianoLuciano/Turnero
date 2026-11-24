@@ -7,4 +7,6 @@ export const product = productJson as {
   description: string;
   themeColor: string;
   backgroundColor: string;
+  /** Where owners write to activate their subscription. Optional: set it in /product.json. */
+  supportEmail?: string;
 };

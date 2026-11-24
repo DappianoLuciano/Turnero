@@ -13,6 +13,7 @@ internal static class GetMe
         group.MapGet("/me", HandleAsync)
             .WithName("GetMe")
             .WithTags("Auth")
+            .WithMetadata(new AllowWithoutSubscriptionAttribute())
             .Produces<SessionUser>()
             .ProducesProblem(StatusCodes.Status401Unauthorized);
 

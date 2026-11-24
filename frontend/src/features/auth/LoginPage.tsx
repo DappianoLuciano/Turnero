@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
-import { Navigate, useLocation, useNavigate } from 'react-router';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router';
 import { z } from 'zod';
 import { errorMessage } from '@/shared/api/problem';
 import { t } from '@/shared/i18n';
@@ -88,6 +88,12 @@ export function LoginPage() {
             <Button type="submit" size="lg" disabled={mutation.isPending}>
               {mutation.isPending ? t.auth.login.submitting : t.auth.login.submit}
             </Button>
+            <p className="text-center text-sm">
+              {t.auth.noAccount}{' '}
+              <Link className="text-primary font-medium underline" to="/app/signup">
+                {t.auth.goToSignup}
+              </Link>
+            </p>
           </form>
         </CardContent>
       </Card>

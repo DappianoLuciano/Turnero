@@ -1,4 +1,5 @@
 import { CheckCircle2 } from 'lucide-react';
+import { Link } from 'react-router';
 import { formatMoney } from '@/shared/format/money';
 import { t } from '@/shared/i18n';
 import { Button } from '@/shared/ui/button';
@@ -6,12 +7,13 @@ import { WhenText } from './WhenText';
 import type { PublicBooking } from './booking-api';
 
 interface Props {
+  slug: string;
   booking: PublicBooking;
   timeZone: string;
   onAnother: () => void;
 }
 
-export function ConfirmedStep({ booking, timeZone, onAnother }: Props) {
+export function ConfirmedStep({ slug, booking, timeZone, onAnother }: Props) {
   return (
     <section aria-label={t.booking.confirmed.title} className="flex flex-col items-center gap-4 text-center">
       <CheckCircle2 className="size-14 text-emerald-600" aria-hidden />
@@ -31,6 +33,10 @@ export function ConfirmedStep({ booking, timeZone, onAnother }: Props) {
       </dl>
 
       <p className="text-muted-foreground text-sm">{t.booking.confirmed.payAtPlace}</p>
+      <p className="text-muted-foreground text-sm">{t.booking.confirmed.manageHint}</p>
+      <Button asChild>
+        <Link to={`/r/${slug}/turno/${booking.manageToken}`}>{t.booking.confirmed.manage}</Link>
+      </Button>
       <Button variant="outline" onClick={onAnother}>
         {t.booking.confirmed.another}
       </Button>

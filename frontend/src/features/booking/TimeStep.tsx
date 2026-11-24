@@ -13,24 +13,37 @@ const weekday = (date: string) =>
     new Date(`${date}T12:00:00Z`),
   );
 
-interface Props {
-  slug: string;
+interface PickerProps {
+  /** Heading of the section. */
+  title: string;
   timeZone: string;
-  service: PublicService;
-  professionalIds: string[];
-  onPick: (slot: BookableSlot) => void;
+  date: string;
+  onDateChange: (date: string) => void;
+  isPending: boolean;
+  error: unknown;
+  isClosed: boolean;
+  slots: { startsAt: string; minutes: number }[];
+  onPick: (slot: { startsAt: string; minutes: number }) => void;
 }
 
 /** Day chips for the next two weeks (or any other date) and the free times of the chosen day. */
-export function TimeStep({ slug, timeZone, service, professionalIds, onPick }: Props) {
+export function DayTimePicker({
+  title,
+  timeZone,
+  date,
+  onDateChange,
+  isPending,
+  error,
+  isClosed,
+  slots,
+  onPick,
+}: PickerProps) {
   const today = todayIn(timeZone);
-  const [date, setDate] = useState(today);
   const days = Array.from({ length: DAYS_SHOWN }, (_, i) => addDays(today, i));
-  const { isPending, error, slots, isClosed } = useDaySlots(slug, professionalIds, service.id, date);
 
   return (
-    <section aria-label={t.booking.steps.time} className="flex flex-col gap-4">
-      <h2 className="text-lg font-semibold">{t.booking.steps.time}</h2>
+    <section aria-label={title} className="flex flex-col gap-4">
+      <h2 className="text-lg font-semibold">{title}</h2>
 
       <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
         {days.map((day) => (
@@ -42,7 +55,7 @@ export function TimeStep({ slug, timeZone, service, professionalIds, onPick }: P
             className={`flex min-w-16 shrink-0 flex-col items-center rounded-xl border px-3 py-2 text-sm ${
               day === date ? 'bg-primary text-primary-foreground border-primary' : 'bg-card hover:bg-muted'
             }`}
-            onClick={() => setDate(day)}
+            onClick={() => onDateChange(day)}
           >
             <span className="capitalize">{weekday(day)}</span>
             <span className="font-medium">{formatDate(day).slice(0, 5)}</span>
@@ -58,7 +71,7 @@ export function TimeStep({ slug, timeZone, service, professionalIds, onPick }: P
           id="booking-other-date"
           className="w-36"
           value={date}
-          onChange={(next) => isValidDate(next) && setDate(next)}
+          onChange={(next) => isValidDate(next) && onDateChange(next)}
         />
       </div>
 
@@ -89,5 +102,36 @@ export function TimeStep({ slug, timeZone, service, professionalIds, onPick }: P
         ))}
       </div>
     </section>
+  );
+}
+
+interface Props {
+  slug: string;
+  timeZone: string;
+  service: PublicService;
+  professionalIds: string[];
+  onPick: (slot: BookableSlot) => void;
+}
+
+/** Booking step: free times of the chosen service for one or several professionals. */
+export function TimeStep({ slug, timeZone, service, professionalIds, onPick }: Props) {
+  const [date, setDate] = useState(() => todayIn(timeZone));
+  const { isPending, error, slots, isClosed } = useDaySlots(slug, professionalIds, service.id, date);
+
+  return (
+    <DayTimePicker
+      title={t.booking.steps.time}
+      timeZone={timeZone}
+      date={date}
+      onDateChange={setDate}
+      isPending={isPending}
+      error={error}
+      isClosed={isClosed}
+      slots={slots}
+      onPick={(picked) => {
+        const slot = slots.find((s) => s.startsAt === picked.startsAt);
+        if (slot) onPick(slot);
+      }}
+    />
   );
 }

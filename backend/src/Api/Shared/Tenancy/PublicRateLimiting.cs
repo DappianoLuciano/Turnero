@@ -11,9 +11,11 @@ internal static class PublicRateLimiting
 {
     public const string Policy = "public";
     public const string BookingPolicy = "public-booking";
+    public const string SignupPolicy = "signup";
 
     private const int DefaultPerMinute = 300;
     private const int DefaultBookingsPerHour = 60;
+    private const int DefaultSignupsPerHour = 10;
 
     public static IServiceCollection AddPublicRateLimiting(this IServiceCollection services)
     {
@@ -35,6 +37,17 @@ internal static class PublicRateLimiting
             {
                 var limit = httpContext.RequestServices.GetRequiredService<IConfiguration>()
                     .GetValue("RateLimiting:PublicBookingsPerHour", DefaultBookingsPerHour);
+                return RateLimitPartition.GetFixedWindowLimiter(ClientKey(httpContext), _ => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = limit,
+                    Window = TimeSpan.FromHours(1),
+                    QueueLimit = 0,
+                });
+            });
+            options.AddPolicy(SignupPolicy, httpContext =>
+            {
+                var limit = httpContext.RequestServices.GetRequiredService<IConfiguration>()
+                    .GetValue("RateLimiting:SignupsPerHour", DefaultSignupsPerHour);
                 return RateLimitPartition.GetFixedWindowLimiter(ClientKey(httpContext), _ => new FixedWindowRateLimiterOptions
                 {
                     PermitLimit = limit,

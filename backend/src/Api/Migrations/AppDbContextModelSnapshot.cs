@@ -66,6 +66,10 @@ namespace Api.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("professional_id");
 
+                    b.Property<DateTimeOffset?>("ReminderSentAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("reminder_sent_at");
+
                     b.Property<Guid>("ServiceId")
                         .HasColumnType("uuid")
                         .HasColumnName("service_id");
@@ -118,12 +122,24 @@ namespace Api.Migrations
                         .HasColumnType("char(3)")
                         .HasColumnName("currency");
 
+                    b.Property<int>("CustomerChangeNoticeHours")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(12)
+                        .HasColumnName("customer_change_notice_hours");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(120)
                         .IsUnicode(true)
                         .HasColumnType("character varying(120)")
                         .HasColumnName("name");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(30)
+                        .IsUnicode(true)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("phone");
 
                     b.Property<string>("Slug")
                         .IsRequired()
@@ -587,6 +603,42 @@ namespace Api.Migrations
                         .HasDatabaseName("ix_professional_services_service_id");
 
                     b.ToTable("professional_services", (string)null);
+                });
+
+            modelBuilder.Entity("Api.Modules.Subscriptions.Domain.Subscription", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("BusinessId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("business_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset?>("PaidUntil")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("paid_until");
+
+                    b.Property<DateTimeOffset>("TrialEndsAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("trial_ends_at");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_subscriptions");
+
+                    b.HasIndex("BusinessId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_subscriptions_business_id");
+
+                    b.ToTable("subscriptions", (string)null);
                 });
 
             modelBuilder.Entity("Api.Modules.Users.Domain.BusinessMembership", b =>

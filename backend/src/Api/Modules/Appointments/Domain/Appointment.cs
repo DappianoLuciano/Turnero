@@ -43,6 +43,10 @@ public sealed class Appointment : ITenantEntity
 
     public string Currency { get; private set; } = Money.DefaultCurrency;
     public string? Notes { get; private set; }
+
+    /// <summary>When the business marked the reminder as sent; null if it was not. Cleared when the time changes.</summary>
+    public DateTimeOffset? ReminderSentAt { get; private set; }
+
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
 
@@ -72,6 +76,8 @@ public sealed class Appointment : ITenantEntity
         UpdatedAt = BusinessTimeZone.EnsureUtc(now);
     }
 
+    public void MarkReminderSent(DateTimeOffset now) => ReminderSentAt = BusinessTimeZone.EnsureUtc(now);
+
     private void Apply(Guid professionalId, Guid serviceId, DateTimeOffset startsAt, int durationMinutes,
         Money price, string? notes, DateTimeOffset now)
     {
@@ -80,6 +86,12 @@ public sealed class Appointment : ITenantEntity
 
         var start = BusinessTimeZone.EnsureUtc(startsAt);
         start = new DateTimeOffset(start.Ticks - (start.Ticks % TimeSpan.TicksPerMinute), TimeSpan.Zero);
+
+        if (start != StartsAt)
+        {
+            // A new time needs a new reminder.
+            ReminderSentAt = null;
+        }
 
         ProfessionalId = professionalId;
         ServiceId = serviceId;

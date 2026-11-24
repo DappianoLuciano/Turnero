@@ -1,10 +1,12 @@
 import {
   BarChart3,
+  BellRing,
   CalendarDays,
   Clock,
   CreditCard,
   Home,
   Scissors,
+  Settings,
   Users,
   UserSquare2,
   Wallet,
@@ -29,4 +31,6 @@ export const navItems: NavItem[] = [
   { to: '/app/payments', label: t.panel.nav.payments, icon: CreditCard },
   { to: '/app/cash-register', label: t.panel.nav.cashRegister, icon: Wallet },
   { to: '/app/reports', label: t.panel.nav.reports, icon: BarChart3 },
+  { to: '/app/reminders', label: t.panel.nav.reminders, icon: BellRing },
+  { to: '/app/settings', label: t.panel.nav.settings, icon: Settings },
 ];

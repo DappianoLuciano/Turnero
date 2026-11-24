@@ -12,11 +12,15 @@ internal static class AppointmentsModule
             .AddScoped<IAppointmentLookup, AppointmentLookup>()
             .AddScoped<IAppointmentStatistics, AppointmentStatistics>()
             .AddScoped<IAppointmentOccupancy, AppointmentOccupancy>()
-            .AddScoped<IAppointmentCreator, AppointmentCreator>();
+            .AddScoped<IAppointmentCreator, AppointmentCreator>()
+            .AddScoped<IAppointmentLinks, AppointmentLinks>()
+            .AddScoped<IAppointmentSelfService, AppointmentSelfService>();
 
     public static void MapAppointmentsEndpoints(ApiRouteGroups groups)
     {
         ListAppointments.Map(groups.Tenant);
+        ListReminders.Map(groups.Tenant);
+        MarkReminderSent.Map(groups.Tenant);
         CreateAppointment.Map(groups.Tenant);
         UpdateAppointment.Map(groups.Tenant);
         ChangeAppointmentStatus.Map(groups.Tenant);

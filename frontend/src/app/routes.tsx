@@ -1,12 +1,16 @@
 import { Navigate, type RouteObject } from 'react-router';
 import { BookingPage } from '@/features/booking/BookingPage';
+import { ManageAppointmentPage } from '@/features/booking/ManageAppointmentPage';
 import { LoginPage } from '@/features/auth/LoginPage';
+import { SignupPage } from '@/features/auth/SignupPage';
 import { RequireAuth } from '@/features/auth/RequireAuth';
 import { CustomersPage } from '@/features/customers/CustomersPage';
 import { navItems } from '@/features/panel/navigation';
 import { AgendaPage } from '@/features/agenda/AgendaPage';
 import { CashPage } from '@/features/cash/CashPage';
 import { SchedulesPage } from '@/features/schedules/SchedulesPage';
+import { RemindersPage } from '@/features/reminders/RemindersPage';
+import { SettingsPage } from '@/features/settings/SettingsPage';
 import { ReportsPage } from '@/features/reports/ReportsPage';
 import { PaymentsPage } from '@/features/payments/PaymentsPage';
 import { StaffPage } from '@/features/staff/StaffPage';
@@ -24,6 +28,7 @@ import { NotFoundPage } from './NotFoundPage';
 export const routes: RouteObject[] = [
   { path: '/', element: <Navigate to="/app" replace /> },
   { path: '/app/login', element: <LoginPage /> },
+  { path: '/app/signup', element: <SignupPage /> },
   {
     path: '/app',
     element: <RequireAuth />,
@@ -40,6 +45,8 @@ export const routes: RouteObject[] = [
           { path: 'cash-register', element: <CashPage /> },
           { path: 'reports', element: <ReportsPage /> },
           { path: 'schedules', element: <SchedulesPage /> },
+          { path: 'reminders', element: <RemindersPage /> },
+          { path: 'settings', element: <SettingsPage /> },
           ...navItems
             .filter(
               (item) =>
@@ -53,6 +60,8 @@ export const routes: RouteObject[] = [
                   '/app/cash-register',
                   '/app/reports',
                   '/app/schedules',
+                  '/app/reminders',
+                  '/app/settings',
                 ].includes(item.to),
             )
             .map((item) => ({
@@ -63,6 +72,7 @@ export const routes: RouteObject[] = [
       },
     ],
   },
+  { path: '/r/:slug/turno/:token', element: <ManageAppointmentPage /> },
   { path: '/r/:slug/*', element: <BookingPage /> },
   { path: '*', element: <NotFoundPage /> },
 ];

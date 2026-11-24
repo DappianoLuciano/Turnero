@@ -8,9 +8,10 @@ namespace Api.Modules.Appointments.Features;
 internal sealed class AppointmentOccupancy(AppDbContext db) : IAppointmentOccupancy
 {
     public async Task<IReadOnlyList<OccupiedPeriod>> GetOccupiedAsync(
-        Guid professionalId, DateTimeOffset from, DateTimeOffset to, CancellationToken cancellationToken = default) =>
+        Guid professionalId, DateTimeOffset from, DateTimeOffset to, Guid? ignoreAppointmentId = null,
+        CancellationToken cancellationToken = default) =>
         await db.Set<Appointment>().AsNoTracking()
-            .Where(a => a.ProfessionalId == professionalId
+            .Where(a => a.ProfessionalId == professionalId && a.Id != ignoreAppointmentId
                 && (a.Status == AppointmentStatus.Scheduled || a.Status == AppointmentStatus.Completed)
                 && a.StartsAt < to && a.EndsAt > from)
             .OrderBy(a => a.StartsAt)

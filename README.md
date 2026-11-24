@@ -35,6 +35,8 @@ docker compose up -d
 cd backend
 dotnet tool restore
 dotnet run --project src/Api -- seed      # aplica migraciones y crea negocio demo + dueño
+# Registrar un pago de suscripción (suma 30 días; ver ADR 0014):
+# dotnet run --project src/Api -- activate <slug> [días]
 dotnet run --project src/Api              # API en http://localhost:5080  (docs: /docs, health: /health)
 
 # 4. Frontend (en otra terminal)
