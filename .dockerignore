@@ -1,0 +1,14 @@
+# Contexto de build: raíz del repo (los Dockerfiles necesitan product.json).
+**/.git
+**/node_modules
+**/bin
+**/obj
+**/dist
+**/dev-dist
+**/coverage
+**/TestResults
+.env
+.env.*
+!.env.example
+backend/tests
+docs

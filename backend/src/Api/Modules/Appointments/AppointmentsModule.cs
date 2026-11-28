@@ -7,14 +7,20 @@ namespace Api.Modules.Appointments;
 /// <summary>Appointments (agenda): who, with whom, for which service and when.</summary>
 internal static class AppointmentsModule
 {
-    public static IServiceCollection AddAppointmentsModule(this IServiceCollection services) =>
-        services.AddScoped<AppointmentBooking>().AddScoped<AppointmentViews>()
+    public static IServiceCollection AddAppointmentsModule(this IServiceCollection services)
+    {
+        services.AddOptions<AppointmentLinkOptions>()
+            .BindConfiguration(AppointmentLinkOptions.Section)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+        return services.AddScoped<AppointmentBooking>().AddScoped<AppointmentViews>()
             .AddScoped<IAppointmentLookup, AppointmentLookup>()
             .AddScoped<IAppointmentStatistics, AppointmentStatistics>()
             .AddScoped<IAppointmentOccupancy, AppointmentOccupancy>()
             .AddScoped<IAppointmentCreator, AppointmentCreator>()
             .AddScoped<IAppointmentLinks, AppointmentLinks>()
             .AddScoped<IAppointmentSelfService, AppointmentSelfService>();
+    }
 
     public static void MapAppointmentsEndpoints(ApiRouteGroups groups)
     {

@@ -593,6 +593,8 @@ export const esAR = {
       payment_not_reversible: 'Una anulación no se puede anular.',
       invalid_range: 'El período no es válido: el final no puede ser anterior al inicio ni superar un año.',
       slot_unavailable: 'Ese horario se acaba de ocupar. Elegí otro, por favor.',
+      too_many_upcoming_appointments:
+        'Ya tenés el máximo de turnos reservados con este teléfono. Cancelá o esperá a uno para sacar otro.',
       date_out_of_range: 'Esa fecha no se puede reservar. Elegí una de los próximos meses.',
       invalid_phone: 'El teléfono no es válido. Revisalo, por favor.',
       invalid_name: 'El nombre no es válido.',

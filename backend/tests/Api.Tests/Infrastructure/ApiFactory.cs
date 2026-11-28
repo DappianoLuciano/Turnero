@@ -18,6 +18,7 @@ public sealed class ApiFactory(PostgresFixture db) : WebApplicationFactory<Progr
             ["ConnectionStrings:Migrations"] = db.MigratorConnectionString,
             ["Database:ApplyMigrationsOnStartup"] = "false",
             ["Jwt:SigningKey"] = SigningKey,
+            ["AppointmentLinks:SigningKey"] = "test-appointment-links-key-long-enough-for-hmac!",
             ["Jwt:Issuer"] = "test-issuer",
             ["Jwt:Audience"] = "test-audience",
             ["RateLimiting:SignupsPerHour"] = "10000",

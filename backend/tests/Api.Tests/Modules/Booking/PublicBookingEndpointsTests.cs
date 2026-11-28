@@ -149,10 +149,49 @@ public sealed class PublicBookingEndpointsTests(PostgresFixture db) : IAsyncLife
         var again = await BookAsync(_t.A.Slug, At(10), "Anita", "(11) 5555-1234");
 
         again.StatusCode.ShouldBe(HttpStatusCode.Created);
-        (await again.Content.ReadFromJsonAsync<JsonElement>(Ct)).GetProperty("customerName").GetString()
-            .ShouldBe("Ana Pérez");
         var customers = await SendAsync(HttpMethod.Get, "/api/customers", _owner);
-        (await customers.Content.ReadFromJsonAsync<JsonElement>(Ct)).GetProperty("items").GetArrayLength().ShouldBe(1);
+        var items = (await customers.Content.ReadFromJsonAsync<JsonElement>(Ct)).GetProperty("items");
+        items.GetArrayLength().ShouldBe(1);
+        items[0].GetProperty("name").GetString().ShouldBe("Ana Pérez");
+    }
+
+    [Fact]
+    public async Task The_response_never_reveals_the_name_stored_for_a_phone()
+    {
+        (await BookAsync(_t.A.Slug, At(9), "Ana Pérez", "1155551234")).StatusCode.ShouldBe(HttpStatusCode.Created);
+
+        // Anyone who knows (or guesses) the phone must not learn whose it is.
+        var probe = await BookAsync(_t.A.Slug, At(10), "  Quien Sea  ", "1155551234");
+
+        probe.StatusCode.ShouldBe(HttpStatusCode.Created);
+        var body = await probe.Content.ReadFromJsonAsync<JsonElement>(Ct);
+        body.GetProperty("customerName").GetString().ShouldBe("Quien Sea");
+        // Compare decoded values: the raw JSON escapes non-ASCII letters, so a raw-text search would miss "Pérez".
+        body.EnumerateObject()
+            .Where(p => p.Value.ValueKind == JsonValueKind.String)
+            .Select(p => p.Value.GetString()!)
+            .ShouldNotContain(value => value.Contains("Pérez"));
+    }
+
+    [Fact]
+    public async Task A_phone_cannot_hold_more_than_the_maximum_of_upcoming_appointments()
+    {
+        var max = 3;
+        for (var i = 0; i < max; i++)
+        {
+            (await BookAsync(_t.A.Slug, At(9 + i), "Ana Pérez", "1155551234")).StatusCode
+                .ShouldBe(HttpStatusCode.Created);
+        }
+
+        var extra = await BookAsync(_t.A.Slug, At(11, 30), "Ana Pérez", "1155551234");
+        extra.StatusCode.ShouldBe(HttpStatusCode.Conflict);
+        (await ErrorCodeAsync(extra)).ShouldBe("too_many_upcoming_appointments");
+
+        // Nothing of the refused booking stays in the agenda, and other phones can still book.
+        var day = await SendAsync(HttpMethod.Get, $"/api/appointments?date={_monday:yyyy-MM-dd}", _owner);
+        (await day.Content.ReadFromJsonAsync<JsonElement>(Ct)).GetArrayLength().ShouldBe(max);
+        (await BookAsync(_t.A.Slug, At(11, 30), "Beto Gómez", "1155559999")).StatusCode
+            .ShouldBe(HttpStatusCode.Created);
     }
 
     [Fact]

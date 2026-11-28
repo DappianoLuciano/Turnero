@@ -11,6 +11,16 @@ public interface IAppointmentLookup
     /// <summary>The appointments of the current business that exist among <paramref name="ids"/> (unknown ids are omitted).</summary>
     Task<IReadOnlyList<AppointmentSummary>> GetByIdsAsync(
         IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Locks the appointment row (<c>SELECT … FOR UPDATE</c>) until the current transaction ends, so read-then-write
+    /// operations on the same appointment (for example, checking the balance before collecting a payment) run one after
+    /// the other instead of both reading the same state. Does nothing if the appointment does not exist.
+    /// </summary>
+    Task LockAsync(Guid appointmentId, CancellationToken cancellationToken = default);
+
+    /// <summary>How many scheduled appointments of the customer start at or after <paramref name="from"/>.</summary>
+    Task<int> CountUpcomingAsync(Guid customerId, DateTimeOffset from, CancellationToken cancellationToken = default);
 }
 
 /// <summary>Number of appointments in one status.</summary>

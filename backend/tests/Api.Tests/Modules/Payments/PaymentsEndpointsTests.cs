@@ -84,6 +84,19 @@ public sealed class PaymentsEndpointsTests(PostgresFixture db) : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Simultaneous_payments_never_exceed_the_price()
+    {
+        // Each one alone would be valid; together they would collect the price several times.
+        var responses = await Task.WhenAll(Enumerable.Range(0, 5).Select(_ => PayAsync(_token, 8500m, "Cash")));
+
+        responses.Count(r => r.StatusCode == HttpStatusCode.Created).ShouldBe(1);
+        responses.Count(r => r.StatusCode == HttpStatusCode.Conflict).ShouldBe(4);
+        var summary = await SummaryAsync(_token);
+        summary.GetProperty("paid").GetDecimal().ShouldBe(8500m);
+        summary.GetProperty("balance").GetDecimal().ShouldBe(0m);
+    }
+
+    [Fact]
     public async Task Rejects_non_positive_amounts_extra_decimals_and_unknown_methods()
     {
         foreach (var amount in new[] { 0m, -5m, 10.005m })

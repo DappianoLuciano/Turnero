@@ -1,0 +1,60 @@
+# Producción en un VPS (o cualquier host con Docker): Postgres + API + web.
+#   cp .env.example .env.prod   # completar con valores reales (ver docs/DEPLOY.md)
+#   docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
+# Delante conviene un proxy con HTTPS (Caddy, Nginx, Cloudflare Tunnel) apuntando al puerto WEB_PORT.
+name: turnero-prod
+
+services:
+  postgres:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_SUPERUSER_PASSWORD:?Set POSTGRES_SUPERUSER_PASSWORD}
+      APP_DB_NAME: ${APP_DB_NAME:-turnero}
+      APP_MIGRATOR_PASSWORD: ${APP_MIGRATOR_PASSWORD:?Set APP_MIGRATOR_PASSWORD}
+      APP_RUNTIME_PASSWORD: ${APP_RUNTIME_PASSWORD:?Set APP_RUNTIME_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ${APP_DB_NAME:-turnero}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    # Sin puertos publicados: solo la API llega a la base.
+
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ConnectionStrings__App: Host=postgres;Database=${APP_DB_NAME:-turnero};Username=app_runtime;Password=${APP_RUNTIME_PASSWORD}
+      ConnectionStrings__Migrations: Host=postgres;Database=${APP_DB_NAME:-turnero};Username=app_migrator;Password=${APP_MIGRATOR_PASSWORD}
+      Database__ApplyMigrationsOnStartup: "true"
+      Jwt__SigningKey: ${Jwt__SigningKey:?Set Jwt__SigningKey}
+      Jwt__Issuer: ${Jwt__Issuer:-turnero-api}
+      Jwt__Audience: ${Jwt__Audience:-turnero-web}
+      AppointmentLinks__SigningKey: ${AppointmentLinks__SigningKey:?Set AppointmentLinks__SigningKey}
+      # Llega a través de Nginx (web). Si delante de web hay otro proxy, subir a 2.
+      ForwardedHeaders__Enabled: "true"
+      ForwardedHeaders__ForwardLimit: ${ForwardedHeaders__ForwardLimit:-1}
+
+  web:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - api
+    environment:
+      API_UPSTREAM: http://api:8080
+    ports:
+      - "${WEB_PORT:-8080}:80"
+
+volumes:
+  pgdata:

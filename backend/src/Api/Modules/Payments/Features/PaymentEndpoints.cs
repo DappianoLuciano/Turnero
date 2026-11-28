@@ -142,6 +142,9 @@ internal static class CollectPayment
         CollectPaymentRequest request, AppDbContext db, ITenantContext tenant, IAppointmentLookup appointments,
         TimeProvider clock, CancellationToken cancellationToken)
     {
+        // Serialize collections of the same appointment: without the lock, two simultaneous payments both read the
+        // same balance and together could exceed the price.
+        await appointments.LockAsync(request.AppointmentId, cancellationToken);
         var appointment = await PaymentRules.FindAppointmentAsync(appointments, request.AppointmentId, cancellationToken);
         if (!appointment.AcceptsPayments)
         {
