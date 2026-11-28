@@ -108,6 +108,9 @@ internal static class GetPublicAvailability
 /// <summary>
 /// POST /api/public/{slug}/appointments: books a time without an account. The customer is found by phone or created
 /// (an existing customer keeps the name the business has). Only a time that availability offers can be booked.
+/// The response never reveals data the business has stored about a phone number: it echoes back the name that was
+/// typed, so the endpoint cannot be used to find out who a phone belongs to. A phone can hold at most
+/// <see cref="BookingRules.MaxUpcomingPerCustomer"/> upcoming appointments, so one person cannot fill an agenda.
 /// </summary>
 internal static class CreatePublicBooking
 {
@@ -142,8 +145,8 @@ internal static class CreatePublicBooking
     private static async Task<IResult> HandleAsync(
         [FromRoute] string slug, CreatePublicBookingRequest request, IBusinessDirectory businesses,
         IServiceCatalog catalog, IProfessionalDirectory professionals, IAvailabilityService availability,
-        ICustomerRegistry customers, IAppointmentCreator appointments, IAppointmentLinks links, TimeProvider clock,
-        CancellationToken cancellationToken)
+        ICustomerRegistry customers, IAppointmentCreator appointments, IAppointmentLookup lookup,
+        IAppointmentLinks links, TimeProvider clock, CancellationToken cancellationToken)
     {
         _ = slug; // Resolved to the tenant by PublicTenantFilter; declared so it appears in the OpenAPI contract.
         var business = await businesses.GetCurrentAsync(cancellationToken)
@@ -161,6 +164,12 @@ internal static class CreatePublicBooking
         }
 
         var customer = await customers.FindOrCreateByPhoneAsync(request.CustomerName, request.CustomerPhone, cancellationToken);
+        if (await lookup.CountUpcomingAsync(customer.Id, clock.GetUtcNow(), cancellationToken)
+            >= BookingRules.MaxUpcomingPerCustomer)
+        {
+            throw AppException.Conflict("too_many_upcoming_appointments",
+                "This phone already has the maximum number of upcoming appointments.");
+        }
 
         CreatedAppointment created;
         try
@@ -177,8 +186,8 @@ internal static class CreatePublicBooking
         var service = (await catalog.GetByIdsAsync([request.ServiceId], cancellationToken)).Single();
         var professional = (await professionals.GetByIdsAsync([request.ProfessionalId], cancellationToken)).Single();
         return TypedResults.Created($"/api/public/{business.Slug}/appointments/{created.Id}", new PublicBookingResponse(
-            created.Id, business.Name, service.Name, professional.Name, customer.Name, created.StartsAt, created.EndsAt,
-            created.Price, created.Currency, links.CreateToken(created.Id)));
+            created.Id, business.Name, service.Name, professional.Name, request.CustomerName.Trim(), created.StartsAt,
+            created.EndsAt, created.Price, created.Currency, links.CreateToken(created.Id)));
     }
 }
 
@@ -186,6 +195,9 @@ internal static class BookingRules
 {
     /// <summary>How far ahead a customer can book.</summary>
     public const int MaxDaysAhead = 90;
+
+    /// <summary>Upcoming (scheduled) appointments one phone can hold through the public site.</summary>
+    public const int MaxUpcomingPerCustomer = 3;
 
     public static void EnsureBookableDate(DateOnly date, string timeZone, TimeProvider clock)
     {
