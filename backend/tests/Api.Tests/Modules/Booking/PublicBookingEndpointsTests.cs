@@ -166,7 +166,11 @@ public sealed class PublicBookingEndpointsTests(PostgresFixture db) : IAsyncLife
         probe.StatusCode.ShouldBe(HttpStatusCode.Created);
         var body = await probe.Content.ReadFromJsonAsync<JsonElement>(Ct);
         body.GetProperty("customerName").GetString().ShouldBe("Quien Sea");
-        body.GetRawText().ShouldNotContain("Ana");
+        // Compare decoded values: the raw JSON escapes non-ASCII letters, so a raw-text search would miss "Pérez".
+        body.EnumerateObject()
+            .Where(p => p.Value.ValueKind == JsonValueKind.String)
+            .Select(p => p.Value.GetString()!)
+            .ShouldNotContain(value => value.Contains("Pérez"));
     }
 
     [Fact]
