@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.Security.Cryptography;
 using System.Text;
 using Api.Modules.Appointments.Contracts;
@@ -13,18 +14,41 @@ using Microsoft.Extensions.Options;
 namespace Api.Modules.Appointments.Features;
 
 /// <summary>
-/// Token = appointment id (32 hex) + first 16 bytes of HMAC-SHA256(business id, appointment id) (32 hex), keyed with a
-/// key derived from the JWT signing key (domain separated). Only the server can issue it; a token of one business never
+/// Key of the customer links. Its own secret (<c>AppointmentLinks:SigningKey</c>) so the JWT key can be rotated
+/// without breaking the links already sent by WhatsApp. Optional while migrating: without it, links are signed with a key
+/// derived from the JWT key (the original behavior), and links signed that way keep validating after it is configured.
+/// </summary>
+internal sealed class AppointmentLinkOptions : IValidatableObject
+{
+    public const string Section = "AppointmentLinks";
+
+    public string? SigningKey { get; set; }
+
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        if (!string.IsNullOrEmpty(SigningKey) && Encoding.UTF8.GetByteCount(SigningKey) < 32)
+        {
+            yield return new ValidationResult(
+                "AppointmentLinks:SigningKey must be at least 32 bytes.", [nameof(SigningKey)]);
+        }
+    }
+}
+
+/// <summary>
+/// Token = appointment id (32 hex) + first 16 bytes of HMAC-SHA256(business id, appointment id) (32 hex), keyed with
+/// <see cref="AppointmentLinkOptions"/> (domain separated). Only the server can issue it; a token of one business never
 /// validates in another because the business id is part of the signed data.
 /// </summary>
-internal sealed class AppointmentLinks(AppDbContext db, ITenantContext tenant, IOptions<JwtOptions> jwt) : IAppointmentLinks
+internal sealed class AppointmentLinks(
+    AppDbContext db, ITenantContext tenant, IOptions<AppointmentLinkOptions> links, IOptions<JwtOptions> jwt)
+    : IAppointmentLinks
 {
     private const int IdLength = 32;
     private const int MacBytes = 16;
     private const int TokenLength = IdLength + (MacBytes * 2);
 
     public string CreateToken(Guid appointmentId) =>
-        appointmentId.ToString("N") + Convert.ToHexStringLower(Mac(tenant.RequireBusinessId(), appointmentId));
+        appointmentId.ToString("N") + Convert.ToHexStringLower(Mac(Keys()[0], tenant.RequireBusinessId(), appointmentId));
 
     public async Task<ManagedAppointment?> FindByTokenAsync(string token, CancellationToken cancellationToken = default)
     {
@@ -43,7 +67,8 @@ internal sealed class AppointmentLinks(AppDbContext db, ITenantContext tenant, I
             return null;
         }
 
-        if (!CryptographicOperations.FixedTimeEquals(provided, Mac(tenant.RequireBusinessId(), id)))
+        var businessId = tenant.RequireBusinessId();
+        if (!Keys().Any(key => CryptographicOperations.FixedTimeEquals(provided, Mac(key, businessId, id))))
         {
             return null;
         }
@@ -52,9 +77,18 @@ internal sealed class AppointmentLinks(AppDbContext db, ITenantContext tenant, I
         return appointment is null ? null : AppointmentSelfService.ToManaged(appointment);
     }
 
-    private byte[] Mac(Guid businessId, Guid appointmentId)
+    /// <summary>Signing key first; the legacy JWT-derived key last, only to validate links issued before.</summary>
+    private byte[][] Keys()
     {
-        var key = SHA256.HashData(Encoding.UTF8.GetBytes("appointment-link:" + jwt.Value.SigningKey));
+        var legacy = SHA256.HashData(Encoding.UTF8.GetBytes("appointment-link:" + jwt.Value.SigningKey));
+        var own = links.Value.SigningKey;
+        return string.IsNullOrEmpty(own)
+            ? [legacy]
+            : [SHA256.HashData(Encoding.UTF8.GetBytes("appointment-link-v2:" + own)), legacy];
+    }
+
+    private static byte[] Mac(byte[] key, Guid businessId, Guid appointmentId)
+    {
         var data = Encoding.UTF8.GetBytes($"{businessId:N}:{appointmentId:N}");
         return HMACSHA256.HashData(key, data)[..MacBytes];
     }
