@@ -29,6 +29,7 @@ internal static class ApiHostingExtensions
         builder.Services.AddApiOpenApi(product);
         builder.Services.AddPersistence();
         builder.Services.AddAppAuthentication();
+        builder.Services.AddAppForwardedHeaders(builder.Configuration);
         builder.Services.AddPublicRateLimiting();
         builder.Services.AddHealthChecks().AddDbContextCheck<AppDbContext>("database");
         builder.Services.AddModules();
@@ -45,6 +46,8 @@ internal static class ApiHostingExtensions
             await DatabaseMigrator.MigrateAsync(migrations);
         }
 
+        // First: everything below (rate limits, logs) must see the real client IP.
+        app.UseAppForwardedHeaders();
         app.UseExceptionHandler();
         app.UseStatusCodePages();
 
