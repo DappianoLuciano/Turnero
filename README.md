@@ -9,6 +9,7 @@ panel del negocio y web pública de reservas, multi-negocio.
 - Arquitectura: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - Decisiones (ADRs): [docs/decisions/](docs/decisions/)
 - Guía para sesiones con Claude: [CLAUDE.md](CLAUDE.md)
+- Deploy: [docs/DEPLOY.md](docs/DEPLOY.md)
 
 ## Requisitos
 
